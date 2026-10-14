@@ -99,10 +99,12 @@ pip install -r requirements.txt
 ### Bước 2: Cấu hình biến môi trường
 Tạo file `.env` từ `.env.example`:
 ```ini
-MONGO_URI=mongodb://localhost:27017
+MONGO_URI=mongodb+srv://<username>:<password>@cluster0.1rl5eeo.mongodb.net/?appName=Cluster0
 DB_NAME=medispace_db
+PATIENTS_COLLECTION=patients
+RECORDS_COLLECTION=medical_records
 ```
-*(Nếu sử dụng MongoDB Atlas Cloud, thay `MONGO_URI` bằng chuỗi kết nối từ Atlas)*
+*(Nếu sử dụng MongoDB Compass, thay `MONGO_URI` bằng chuỗi kết nối từ Compass)*
 
 ### Bước 3: Nạp dữ liệu mẫu đạt chuẩn định mức (Dummy Data)
 ```bash
