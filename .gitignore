@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+atlas-credentials.env
 
 # Python Virtual Environments
 venv/
@@ -43,4 +44,4 @@ desktop.ini
 
 # CodeGraph & Internal configs
 .codegraph/
-config.md
+agent/
