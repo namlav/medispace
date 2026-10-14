@@ -107,25 +107,27 @@ RECORDS_COLLECTION=medical_records
 *(Nếu sử dụng MongoDB Compass, thay `MONGO_URI` bằng chuỗi kết nối từ Compass)*
 
 ### Bước 3: Nạp dữ liệu mẫu đạt chuẩn định mức (Dummy Data)
+#### (SV1 phụ trách)
 ```bash
 python scripts/seed_data.py
 ```
 *Kết quả:* Nạp thành công $\ge 120$ bệnh nhân và $\ge 150$ bệnh án phân bổ vào 3 chuyên khoa.
 
 ### Bước 4: Tạo và tối ưu Index
+#### (SV2 phụ trách)
 ```bash
 python scripts/create_indexes.py
 ```
 *Kết quả:* Tạo Compound Index và hiển thị so sánh hiệu năng truy vấn `executionStats`.
 
 ### Bước 5: Khởi chạy ứng dụng
-
+#### (SV3 phụ trách)
 * **Khởi động Giao diện Web (Streamlit UI)**:
 ```bash
 streamlit run frontend/app.py
 ```
 Truy cập giao diện tại: `http://localhost:8501`
-
+#### (SV2 phụ trách)
 * **Khởi động Backend RESTful API (FastAPI)**:
 ```bash
 uvicorn backend.app.main:app --reload --port 8000
