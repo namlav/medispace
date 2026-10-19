@@ -12,7 +12,14 @@ class MongoManager:
 
     def connect(self):
         try:
-            self.client = MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
+            # Tăng thời gian timeout lên 15 giây và bật retryWrites để chống rớt kết nối
+            self.client = MongoClient(
+                settings.MONGO_URI, 
+                serverSelectionTimeoutMS=15000,
+                socketTimeoutMS=None,
+                connectTimeoutMS=15000,
+                retryWrites=True
+            )
             self.db = self.client[settings.DB_NAME]
             # Ping thử kết nối
             self.client.admin.command('ping')
