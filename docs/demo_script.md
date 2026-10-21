@@ -30,10 +30,17 @@
   1. Chuyển sang Trang `📊 Thống Kê Y Tế`.
   2. Bấm nút **"KÍCH HOẠT BÁO CÁO THỐNG KÊ DỊCH TỄ / BỆNH LÝ"**.
   3. Trình bày 3 biểu đồ trực quan hóa dữ liệu:
-     - **Biểu đồ 1 (Chuyên khoa)**: Số ca khám và tỷ lệ tái khám theo từng khoa. Mở phần *Xem câu lệnh Pipeline 1* giải thích stage `$group` và toán tử điều kiện `$cond`.
-     - **Biểu đồ 2 (Độ tuổi)**: Tỷ lệ mắc bệnh theo các nhóm tuổi (Nhi, Thanh niên, Trung niên, Cao tuổi). Giải thích stage `$lookup` nối với collection `patients`, tính tuổi từ năm sinh và phân loại bằng `$switch`.
-     - **Biểu đồ 3 (Tái khám)**: Tần suất tái khám qua `$facet` và `$bucket`.
-  4. Trình chiếu kết quả đo lường chỉ mục từ script `create_indexes.py` (chứng minh tốc độ truy vấn tăng vọt từ `COLLSCAN` sang `IXSCAN` với Compound Index).
+     - **Biểu đồ 1 (Chuyên khoa)**: DA_LIEU 63 ca, RANG_HAM_MAT 61 ca, TIM_MACH 58 ca. Mở phần *Xem câu lệnh Pipeline 1* giải thích `$match` lọc `visit_date` → `$group` theo `department` → `$cond` đếm ca tái khám → `$size` đếm lượt thuốc (không cần `$unwind`).
+     - **Biểu đồ 2 (Độ tuổi)**: 4 nhóm `0-18` (44 ca), `19-40` (43 ca), `41-60` (42 ca), `60+` (48 ca). Giải thích `$lookup` nối với collection `patients` (phải `$convert` chuỗi `patient_id` sang ObjectId), `$dateDiff` tính tuổi tại ngày khám và `$switch` phân nhóm.
+     - **Biểu đồ 3 (Tái khám)**: 121 bệnh nhân từng khám, 40 bệnh nhân tái khám, tỷ lệ **33,06%**. Giải thích `$group` theo `patient_id` rồi `$facet` chạy song song: một nhánh `$bucket` (81 người khám 1 lần, 33 người 2-3 lần, 7 người >3 lần), một nhánh tính tổng và tỷ lệ.
+  4. Mở `backend/app/services/analytics_service.py` chỉ rõ 3 hàm tương ứng; Pipeline 3 tính `revisit_rate_percent` ngay trong `$project`, không chia bằng Python.
+  5. Mở MongoDB Compass → `medispace_db.medical_records` → tab **Aggregations**, dán pipeline 1 để đối chiếu kết quả trực tiếp.
+  6. Trình chiếu kết quả từ `python scripts/create_indexes.py`:
+     - Trước index: `SORT <- COLLSCAN`, `totalDocsExamined = 182`.
+     - Sau Compound Index `{ department: 1, visit_date: -1 }`: `FETCH <- IXSCAN`, `totalDocsExamined = 58` (giảm 68,1%), không còn stage `SORT`.
+     - Mở tab **Explain Plan** trên Compass để xác nhận `IXSCAN` nếu giảng viên yêu cầu.
+  7. Nếu bị hỏi vì sao `executionTimeMillis` vẫn 0 ms: dataset 182 document đã nằm trong RAM nên thời gian bị làm tròn; bằng chứng tối ưu là `totalDocsExamined` giảm từ 182 xuống 58 và plan đổi từ `COLLSCAN` sang `IXSCAN`.
+  8. Chi tiết từng stage và bảng số liệu đầy đủ nằm trong `docs/aggregation_explained.md`.
 
 ---
 
