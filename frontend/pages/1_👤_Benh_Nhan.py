@@ -5,6 +5,7 @@ import pandas as pd
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(ROOT_DIR))
+
 from backend.app.services.patient_service import PatientService
 from backend.app.models.patient import PatientCreate
 
@@ -108,7 +109,10 @@ with tab_edit:
     patients_edit, _ = PatientService.list_patients(skip=0, limit=1000, search=search_edit if search_edit else None)
     
     if patients_edit:
-        patient_options_edit = {f"{p.get('patient_code')} - {p.get('full_name')} ({p.get('phone', 'Không có SĐT')})": str(p.get("_id")) for p in patients_edit}
+        patient_options_edit = {
+            f"{p.get('patient_code')} - {p.get('full_name')} ({p.get('phone', 'Không có SĐT')})": str(p.get("_id")) 
+            for p in patients_edit
+        }
         selected_label_edit = st.selectbox("Chọn bệnh nhân từ kết quả tìm kiếm:", options=list(patient_options_edit.keys()), key="select_edit_tab")
         chosen_id_edit = patient_options_edit[selected_label_edit] if selected_label_edit else None
         
@@ -173,7 +177,10 @@ with tab_delete:
     patients_del, _ = PatientService.list_patients(skip=0, limit=1000, search=search_del if search_del else None)
     
     if patients_del:
-        patient_options_del = {f"{p.get('patient_code')} - {p.get('full_name')} ({p.get('phone', 'Không có SĐT')})": str(p.get("_id")) for p in patients_del}
+        patient_options_del = {
+            f"{p.get('patient_code')} - {p.get('full_name')} ({p.get('phone', 'Không có SĐT')})": str(p.get("_id")) 
+            for p in patients_del
+        }
         selected_label_del = st.selectbox("Chọn bệnh nhân từ kết quả tìm kiếm:", options=list(patient_options_del.keys()), key="select_del_tab")
         chosen_id_del = patient_options_del[selected_label_del] if selected_label_del else None
         
