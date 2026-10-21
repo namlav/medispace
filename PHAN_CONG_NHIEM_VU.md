@@ -92,9 +92,9 @@
   - `scripts/seed_data.py`
   - `scripts/backup_restore.bat`
   - `frontend/app.py`
-  - `frontend/pages/1_👤_Benh_Nhan.py`
-  - `frontend/pages/2_📋_Kham_Benh_Dong.py`
-  - `frontend/pages/3_📊_Thong_Ke_Y_Te.py`
+  - `frontend/pages/Benh_Nhan.py`
+  - `frontend/pages/Kham_Benh_Dong.py`
+  - `frontend/pages/Thong_Ke_Y_Te.py`
   - `docs/backup_restore_guide.md`
   - `docs/demo_script.md`
 

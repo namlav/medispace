@@ -67,9 +67,9 @@ medispace/
 ├── frontend/
 │   ├── app.py              # Dashboard Streamlit chính
 │   └── pages/
-│       ├── 1_👤_Benh_Nhan.py       # Quản lý danh sách & tạo bệnh nhân
-│       ├── 2_📋_Kham_Benh_Dong.py  # Form khám bệnh động theo chuyên khoa
-│       └── 3_📊_Thong_Ke_Y_Te.py   # Dashboard biểu đồ thống kê từ Aggregation
+│       ├── Benh_Nhan.py       # Quản lý danh sách & tạo bệnh nhân
+│       ├── Kham_Benh_Dong.py  # Form khám bệnh động theo chuyên khoa
+│       └── Thong_Ke_Y_Te.py   # Dashboard biểu đồ thống kê từ Aggregation
 ├── scripts/
 │   ├── seed_data.py        # Sinh >= 100 BN và >= 150 bệnh án mẫu
 │   ├── create_indexes.py   # Thiết lập Index & đo lường executionStats
