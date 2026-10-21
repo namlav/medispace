@@ -42,6 +42,6 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 
-# CodeGraph & Internal configs
+# Internal configs
 .codegraph/
 agent/
