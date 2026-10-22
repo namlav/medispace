@@ -42,6 +42,10 @@ class MedicalRecordCreate(MedicalRecordBase):
     pass
 
 class MedicalRecordUpdate(BaseModel):
+    patient_id: Optional[str] = None
+    record_code: Optional[str] = None
+    department: Optional[DepartmentEnum] = None
+    visit_date: Optional[datetime] = None
     doctor_name: Optional[str] = None
     symptoms: Optional[str] = None
     diagnosis: Optional[str] = None

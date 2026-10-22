@@ -14,7 +14,7 @@ from frontend.api_client import (
     api_update_record, 
     api_delete_record
 )
-from backend.app.models.record import DepartmentEnum
+DEPARTMENTS = ["TIM_MACH", "DA_LIEU", "RANG_HAM_MAT"]
 
 st.set_page_config(page_title="Quản Lý Hồ Sơ Bệnh Án Động | MediSpace", page_icon="📋", layout="wide")
 
@@ -29,7 +29,11 @@ tab_create, tab_search, tab_edit, tab_delete = st.tabs([
 ])
 
 # Tải danh sách bệnh nhân qua API
-all_patients, _ = api_get_patients(skip=0, limit=1000)
+try:
+    all_patients, _ = api_get_patients(skip=0, limit=1000)
+except Exception:
+    st.error("Không kết nối được FastAPI Backend. Hãy kiểm tra backend đang chạy ở cổng 8000.")
+    st.stop()
 patient_map = {str(p.get("_id") or p.get("id")): p for p in all_patients}
 
 # ==========================================
@@ -52,7 +56,7 @@ with tab_create:
     with col_main1:
         selected_dept = st.selectbox(
             "2. Chọn Chuyên Khoa Khám:",
-            options=[DepartmentEnum.TIM_MACH.value, DepartmentEnum.DA_LIEU.value, DepartmentEnum.RANG_HAM_MAT.value],
+            options=DEPARTMENTS,
             format_func=lambda x: {
                 "TIM_MACH": "❤️ Khoa Tim Mạch",
                 "DA_LIEU": "🔬 Khoa Da Liễu",
@@ -72,7 +76,7 @@ with tab_create:
     st.subheader(f"🩺 Dữ Liệu Đặc Thù Của {selected_dept} (Dynamic Schema)")
 
     specialty_data = {}
-    if selected_dept == DepartmentEnum.TIM_MACH.value:
+    if selected_dept == "TIM_MACH":
         c1, c2, c3 = st.columns(3)
         with c1:
             systolic = st.number_input("Huyết áp tâm thu (mmHg):", min_value=60, max_value=250, value=140, key="c_sys")
@@ -96,7 +100,7 @@ with tab_create:
             "ecg_result": ecg,
             "cardiovascular_risk": risk
         }
-    elif selected_dept == DepartmentEnum.DA_LIEU.value:
+    elif selected_dept == "DA_LIEU":
         c1, c2 = st.columns(2)
         with c1:
             locations = st.multiselect("Vị trí tổn thương da:", ["Khuôn mặt", "Cẳng tay", "Bàn tay", "Lưng", "Vùng ngực", "Da đầu", "Cẳng chân"], default=["Cẳng tay"], key="d_loc")
@@ -119,7 +123,7 @@ with tab_create:
             "patch_test": patch_test,
             "is_contagious": is_contagious
         }
-    elif selected_dept == DepartmentEnum.RANG_HAM_MAT.value:
+    elif selected_dept == "RANG_HAM_MAT":
         c1, c2 = st.columns(2)
         with c1:
             tooth_input = st.text_input("Vị trí răng tổn thương (VD: 36, 46):", "36, 46", key="r_tooth")
@@ -156,7 +160,7 @@ with tab_create:
     with col_follow2:
         follow_up_date = st.date_input("Ngày hẹn tái khám", key="follow_up_dt") if follow_up else None
 
-    if st.button("💾 Xác Nhận & Lưu Bệnh Án Vào MongoDB (qua API)", type="primary", use_container_width=True, key="btn_save_record"):
+    if st.button("💾 Xác Nhận & Lưu Bệnh Án Vào MongoDB (qua API)", type="primary", width="stretch", key="btn_save_record"):
         prescriptions = [
             {
                 "medicine_name": med_name,
@@ -203,7 +207,7 @@ with tab_search:
     with col_s2:
         filter_dept = st.selectbox(
             "Lọc theo chuyên khoa:",
-            options=["Tất cả", DepartmentEnum.TIM_MACH.value, DepartmentEnum.DA_LIEU.value, DepartmentEnum.RANG_HAM_MAT.value],
+            options=["Tất cả"] + DEPARTMENTS,
             format_func=lambda x: {
                 "Tất cả": "🌐 Tất cả khoa",
                 "TIM_MACH": "❤️ Tim Mạch",
@@ -215,25 +219,13 @@ with tab_search:
 
     try:
         dept_arg = None if filter_dept == "Tất cả" else filter_dept
-        records, total_rec = api_get_records(skip=0, limit=200, department=dept_arg)
+        records, total_rec = api_get_records(
+            skip=0,
+            limit=200,
+            department=dept_arg,
+            search=search_query.strip() or None
+        )
 
-        if search_query:
-            q = search_query.strip().lower()
-            filtered_records = []
-            for r in records:
-                p_info = patient_map.get(str(r.get("patient_id")), {})
-                p_code = str(p_info.get("patient_code", "")).lower()
-                p_name = str(p_info.get("full_name", "")).lower()
-                r_code = str(r.get("record_code", "")).lower()
-                doc = str(r.get("doctor_name", "")).lower()
-                diag = str(r.get("diagnosis", "")).lower()
-                symp = str(r.get("symptoms", "")).lower()
-                
-                if q in r_code or q in p_code or q in p_name or q in doc or q in diag or q in symp:
-                    filtered_records.append(r)
-            records = filtered_records
-            total_rec = len(records)
-        
         st.write(f"Tìm thấy **{len(records)}** / **{total_rec}** hồ sơ bệnh án:")
         
         if records:
@@ -272,7 +264,7 @@ with tab_search:
                     pres_list = rec.get("prescriptions", [])
                     if pres_list:
                         st.markdown("💊 **Đơn Thuốc Đã Kê:**")
-                        st.dataframe(pres_list, use_container_width=True)
+                        st.dataframe(pres_list, width="stretch")
         else:
             st.warning("Không tìm thấy hồ sơ bệnh án nào phù hợp với điều kiện tìm kiếm.")
             
@@ -285,17 +277,12 @@ with tab_search:
 with tab_edit:
     st.subheader("✏️ Chỉnh Sửa Thông Tin Bệnh Án & Dữ Liệu Đặc Thù")
     search_edit = st.text_input("🔍 Tìm bệnh án cần chỉnh sửa (Mã BA, Mã BN, Tên BN):", key="search_edit_rec_tab")
-    all_recs, _ = api_get_records(skip=0, limit=1000)
-    
-    if search_edit:
-        q_edit = search_edit.strip().lower()
-        all_recs = [
-            r for r in all_recs
-            if q_edit in str(r.get("record_code", "")).lower()
-            or q_edit in str(patient_map.get(str(r.get("patient_id")), {}).get("patient_code", "")).lower()
-            or q_edit in str(patient_map.get(str(r.get("patient_id")), {}).get("full_name", "")).lower()
-        ]
-        
+    all_recs, _ = api_get_records(
+        skip=0,
+        limit=1000,
+        search=search_edit.strip() or None
+    )
+
     if all_recs:
         record_options_edit = {
             f"[{r.get('record_code')}] - BN: {patient_map.get(str(r.get('patient_id')), {}).get('patient_code', 'N/A')} - {patient_map.get(str(r.get('patient_id')), {}).get('full_name', 'N/A')} - Khoa: {r.get('department')}": str(r.get("_id") or r.get("id"))
@@ -306,14 +293,14 @@ with tab_edit:
         
         editing_rec = next((r for r in all_recs if str(r.get("_id") or r.get("id")) == chosen_rec_id), None)
         if editing_rec:
-            old_dept = editing_rec.get("department", DepartmentEnum.TIM_MACH.value)
+            old_dept = editing_rec.get("department", "TIM_MACH")
             old_spec_data = editing_rec.get("specialty_data", {})
             
             st.markdown("### 1. Thông Tin Hành Chính & Thăm Khám")
             col_e1, col_e2 = st.columns(2)
             with col_e1:
                 e_rec_code = st.text_input("Mã phiếu khám *", value=editing_rec.get("record_code", ""), key="e_code_in")
-                dept_list = [DepartmentEnum.TIM_MACH.value, DepartmentEnum.DA_LIEU.value, DepartmentEnum.RANG_HAM_MAT.value]
+                dept_list = DEPARTMENTS
                 dept_idx = dept_list.index(old_dept) if old_dept in dept_list else 0
                 
                 selected_edit_dept = st.selectbox(
@@ -338,7 +325,7 @@ with tab_edit:
             
             updated_specialty_data = {}
             
-            if selected_edit_dept == DepartmentEnum.TIM_MACH.value:
+            if selected_edit_dept == "TIM_MACH":
                 bp = old_spec_data.get("blood_pressure", {})
                 sys_val = bp.get("systolic", 140) if isinstance(bp, dict) else 140
                 dia_val = bp.get("diastolic", 90) if isinstance(bp, dict) else 90
@@ -369,7 +356,7 @@ with tab_edit:
                     "cardiovascular_risk": risk
                 }
 
-            elif selected_edit_dept == DepartmentEnum.DA_LIEU.value:
+            elif selected_edit_dept == "DA_LIEU":
                 dc1, dc2 = st.columns(2)
                 with dc1:
                     loc_opts = ["Khuôn mặt", "Cẳng tay", "Bàn tay", "Lưng", "Vùng ngực", "Da đầu", "Cẳng chân"]
@@ -397,7 +384,7 @@ with tab_edit:
                     "is_contagious": is_contagious
                 }
 
-            elif selected_edit_dept == DepartmentEnum.RANG_HAM_MAT.value:
+            elif selected_edit_dept == "RANG_HAM_MAT":
                 chart = old_spec_data.get("dental_chart", [])
                 default_teeth_str = ", ".join([str(t.get("tooth_number")) for t in chart]) if chart else "36, 46"
                 
@@ -434,7 +421,7 @@ with tab_edit:
             st.markdown("---")
             e_follow_up = st.checkbox("Yêu cầu hẹn tái khám", value=bool(editing_rec.get("follow_up_required", False)), key="e_follow_chk")
             
-            if st.button("💾 Lưu Cập Nhật Bệnh Án", type="primary", use_container_width=True, key="btn_update_rec"):
+            if st.button("💾 Lưu Cập Nhật Bệnh Án", type="primary", width="stretch", key="btn_update_rec"):
                 update_payload = {
                     "record_code": e_rec_code,
                     "department": selected_edit_dept,
@@ -463,17 +450,12 @@ with tab_edit:
 with tab_delete:
     st.subheader("🗑️ Xóa Hồ Sơ Bệnh Án")
     search_del = st.text_input("🔍 Tìm bệnh án cần xóa (Mã BA, Mã BN, Tên BN):", key="search_del_rec_tab")
-    recs_del, _ = api_get_records(skip=0, limit=1000)
-    
-    if search_del:
-        q_del = search_del.strip().lower()
-        recs_del = [
-            r for r in recs_del
-            if q_del in str(r.get("record_code", "")).lower()
-            or q_del in str(patient_map.get(str(r.get("patient_id")), {}).get("patient_code", "")).lower()
-            or q_del in str(patient_map.get(str(r.get("patient_id")), {}).get("full_name", "")).lower()
-        ]
-        
+    recs_del, _ = api_get_records(
+        skip=0,
+        limit=1000,
+        search=search_del.strip() or None
+    )
+
     if recs_del:
         record_options_del = {
             f"[{r.get('record_code')}] - BN: {patient_map.get(str(r.get('patient_id')), {}).get('patient_code', 'N/A')} - {patient_map.get(str(r.get('patient_id')), {}).get('full_name', 'N/A')} - Khoa: {r.get('department')}": str(r.get("_id") or r.get("id"))

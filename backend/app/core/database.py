@@ -16,7 +16,7 @@ class MongoManager:
             self.client = MongoClient(
                 settings.MONGO_URI, 
                 serverSelectionTimeoutMS=15000,
-                socketTimeoutMS=None,
+                socketTimeoutMS=30000,
                 connectTimeoutMS=15000,
                 retryWrites=True
             )

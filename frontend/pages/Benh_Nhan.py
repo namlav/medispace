@@ -11,9 +11,7 @@ from frontend.api_client import (
     api_get_patients, 
     api_create_patient, 
     api_update_patient, 
-    api_delete_patient,
-    api_get_records,
-    api_delete_record
+    api_delete_patient
 )
 
 st.set_page_config(page_title="Quản Lý Bệnh Nhân | MediSpace", page_icon="👤", layout="wide")
@@ -29,7 +27,11 @@ tab_list, tab_create, tab_edit, tab_delete = st.tabs([
 ])
 
 # Lấy tổng số lượng để gợi ý mã bệnh nhân mới
-_, total_all = api_get_patients(skip=0, limit=1000)
+try:
+    _, total_all = api_get_patients(skip=0, limit=1000)
+except Exception:
+    st.error("Không kết nối được FastAPI Backend. Hãy kiểm tra backend đang chạy ở cổng 8000.")
+    st.stop()
 
 # --- TAB 1: DANH SÁCH ---
 with tab_list:
@@ -62,7 +64,7 @@ with tab_list:
         df = pd.DataFrame(table_data)
         st.dataframe(
             df.drop(columns=["ID Hệ Thống"]), 
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
     else:
@@ -246,18 +248,10 @@ with tab_delete:
             
             if st.button("🗑️ Xác Nhận Xóa Bệnh Nhân & Toàn Bộ Bệnh Án", type="primary"):
                 try:
-                    all_records, _ = api_get_records(skip=0, limit=10000)
-                    deleted_records_count = 0
-                    for rec in all_records:
-                        if str(rec.get("patient_id")) == str(chosen_id_del):
-                            rec_id = str(rec.get("_id") or rec.get("id"))
-                            api_delete_record(rec_id)
-                            deleted_records_count += 1
-                    
                     status_code = api_delete_patient(chosen_id_del)
                     if status_code in [200, 204]:
                         st.toast("Đã xóa vĩnh viễn bệnh nhân và các hồ sơ bệnh án liên quan!", icon="🗑️")
-                        st.success(f"Đã xóa thành công bệnh nhân và {deleted_records_count} hồ sơ bệnh án liên quan!")
+                        st.success("Đã xóa thành công bệnh nhân và toàn bộ hồ sơ bệnh án liên quan!")
                         st.rerun()
                     else:
                         st.error(f"Lỗi khi xóa bệnh nhân qua API, mã lỗi: {status_code}")

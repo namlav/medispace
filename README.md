@@ -99,12 +99,16 @@ pip install -r requirements.txt
 ### Bước 2: Cấu hình biến môi trường
 Tạo file `.env` từ `.env.example`:
 ```ini
+APP_ENV=development
 MONGO_URI=mongodb+srv://<username>:<password>@cluster0.1rl5eeo.mongodb.net/?appName=Cluster0
 DB_NAME=medispace_db
 PATIENTS_COLLECTION=patients
 RECORDS_COLLECTION=medical_records
+CORS_ORIGINS=http://localhost:8501,http://127.0.0.1:8501
 ```
 *(Nếu sử dụng MongoDB Compass, thay `MONGO_URI` bằng chuỗi kết nối từ Compass)*
+
+*(Local dùng `.env`; khi deploy production đặt `APP_ENV=production` để biến môi trường OS được ưu tiên)*
 
 ### Bước 3: Nạp dữ liệu mẫu đạt chuẩn định mức (Dummy Data)
 #### (SV1 phụ trách)
@@ -133,3 +137,5 @@ Truy cập giao diện tại: `http://localhost:8501`
 uvicorn backend.app.main:app --reload --port 8000
 ```
 Truy cập Swagger UI tài liệu API tại: `http://localhost:8000/docs`
+
+> Mặc định backend chỉ nghe localhost. Không mở `--host 0.0.0.0` khi chưa có lớp xác thực/reverse proxy, vì API hiện chưa có đăng nhập.

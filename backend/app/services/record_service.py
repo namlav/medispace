@@ -1,14 +1,31 @@
+import re
 from bson import ObjectId
 from datetime import datetime
 from typing import List, Optional, Tuple
-from backend.app.core.database import get_records_collection
+
+from pymongo import ReturnDocument
+
+from backend.app.core.database import get_patients_collection, get_records_collection
 from backend.app.models.record import MedicalRecordCreate, MedicalRecordUpdate
+
 
 def _format_record(doc: dict) -> dict:
     if not doc:
         return None
     doc["id"] = str(doc["_id"])
     return doc
+
+
+def _object_id(value: str):
+    try:
+        return ObjectId(value)
+    except Exception:
+        return None
+
+
+def _regex(value: str) -> dict:
+    return {"$regex": re.escape(value), "$options": "i"}
+
 
 class RecordService:
     @staticmethod
@@ -22,17 +39,18 @@ class RecordService:
 
     @staticmethod
     def get_record_by_id(record_id: str) -> Optional[dict]:
-        col = get_records_collection()
-        try:
-            doc = col.find_one({"_id": ObjectId(record_id)})
-            return _format_record(doc)
-        except Exception:
+        oid = _object_id(record_id)
+        if not oid:
             return None
+        return _format_record(get_records_collection().find_one({"_id": oid}))
 
     @staticmethod
     def list_records(
         patient_id: Optional[str] = None,
         department: Optional[str] = None,
+        search: Optional[str] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
         skip: int = 0,
         limit: int = 50
     ) -> Tuple[List[dict], int]:
@@ -42,7 +60,38 @@ class RecordService:
             query["patient_id"] = patient_id
         if department:
             query["department"] = department
-            
+        if start_date or end_date:
+            visit_range = {}
+            if start_date:
+                visit_range["$gte"] = start_date
+            if end_date:
+                visit_range["$lte"] = end_date
+            query["visit_date"] = visit_range
+        if search:
+            # shortcut: resolve patient IDs in a second query; move to $lookup
+            # if the patients collection no longer fits in memory.
+            patient_ids = [
+                str(p["_id"])
+                for p in get_patients_collection().find(
+                    {
+                        "$or": [
+                            {"full_name": _regex(search)},
+                            {"patient_code": _regex(search)}
+                        ]
+                    },
+                    {"_id": 1}
+                )
+            ]
+            conditions = [
+                {"record_code": _regex(search)},
+                {"doctor_name": _regex(search)},
+                {"symptoms": _regex(search)},
+                {"diagnosis": _regex(search)}
+            ]
+            if patient_ids:
+                conditions.append({"patient_id": {"$in": patient_ids}})
+            query["$or"] = conditions
+
         total = col.count_documents(query)
         cursor = col.find(query).sort("visit_date", -1).skip(skip).limit(limit)
         records = [_format_record(d) for d in cursor]
@@ -50,26 +99,22 @@ class RecordService:
 
     @staticmethod
     def update_record(record_id: str, data: MedicalRecordUpdate) -> Optional[dict]:
-        col = get_records_collection()
-        update_dict = {k: v for k, v in data.model_dump().items() if v is not None}
+        oid = _object_id(record_id)
+        if not oid:
+            return None
+        update_dict = data.model_dump(exclude_unset=True)
         if not update_dict:
             return RecordService.get_record_by_id(record_id)
-        
-        try:
-            res = col.find_one_and_update(
-                {"_id": ObjectId(record_id)},
-                {"$set": update_dict},
-                return_document=True
-            )
-            return _format_record(res)
-        except Exception:
-            return None
+        updated = get_records_collection().find_one_and_update(
+            {"_id": oid},
+            {"$set": update_dict},
+            return_document=ReturnDocument.AFTER
+        )
+        return _format_record(updated)
 
     @staticmethod
     def delete_record(record_id: str) -> bool:
-        col = get_records_collection()
-        try:
-            res = col.delete_one({"_id": ObjectId(record_id)})
-            return res.deleted_count > 0
-        except Exception:
+        oid = _object_id(record_id)
+        if not oid:
             return False
+        return get_records_collection().delete_one({"_id": oid}).deleted_count > 0

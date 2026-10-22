@@ -1,10 +1,17 @@
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pymongo.errors import PyMongoError
+
 from backend.app.core.config import settings
 from backend.app.core.database import mongo_manager, get_db
 from backend.app.api.v1.patients import router as patients_router
 from backend.app.api.v1.records import router as records_router
 from backend.app.api.v1.analytics import router as analytics_router
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -12,11 +19,19 @@ app = FastAPI(
     description="REST API cho Hệ thống Bệnh án Điện tử Đa Chuyên Khoa ứng dụng CSDL NoSQL MongoDB"
 )
 
-# Cấu hình CORS để Frontend (Streamlit / React / Vue) có thể gọi thoải mái
+@app.exception_handler(PyMongoError)
+async def mongo_exception_handler(request: Request, exc: PyMongoError):
+    logger.exception("MongoDB operation failed")
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Không thể truy cập MongoDB. Vui lòng thử lại sau."}
+    )
+
+# Chỉ mở CORS cho các origin được cấu hình, không dùng "*" kèm credentials.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -49,8 +64,8 @@ def health_check():
         db = get_db()
         db.command("ping")
         mongo_status = "connected"
-    except Exception as e:
-        mongo_status = f"disconnected: {str(e)}"
+    except Exception:
+        mongo_status = "disconnected"
         
     return {
         "api": "healthy",
