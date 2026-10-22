@@ -1,5 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query, status
+from fastapi.encoders import jsonable_encoder
 from typing import List, Optional
+from bson import ObjectId  # Bắt buộc import ObjectId
+
 from backend.app.models.patient import PatientCreate, PatientUpdate, PatientOut
 from backend.app.services.patient_service import PatientService
 
@@ -13,21 +16,24 @@ def create_patient(data: PatientCreate):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Mã bệnh nhân '{data.patient_code}' đã tồn tại trong hệ thống."
         )
-    return PatientService.create_patient(data)
+    created = PatientService.create_patient(data)
+    # Thêm custom_encoder để parse ObjectId
+    return jsonable_encoder(created, custom_encoder={ObjectId: str})
 
 @router.get("", response_model=dict)
 def get_patients(
     skip: int = Query(0, ge=0, description="Số lượng bản ghi bỏ qua"),
-    limit: int = Query(50, ge=1, le=100, description="Số lượng bản ghi tối đa"),
+    limit: int = Query(50, ge=1, le=10000, description="Số lượng bản ghi tối đa"), 
     search: Optional[str] = Query(None, description="Tìm kiếm theo Tên, Mã BN, hoặc SĐT")
 ):
     items, total = PatientService.list_patients(skip=skip, limit=limit, search=search)
-    return {
+    # Thêm custom_encoder để parse ObjectId trong list
+    return jsonable_encoder({
         "total": total,
         "skip": skip,
         "limit": limit,
         "items": items
-    }
+    }, custom_encoder={ObjectId: str})
 
 @router.get("/{patient_id}", response_model=PatientOut)
 def get_patient(patient_id: str):
@@ -37,7 +43,7 @@ def get_patient(patient_id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Không tìm thấy bệnh nhân có ID '{patient_id}'."
         )
-    return patient
+    return jsonable_encoder(patient, custom_encoder={ObjectId: str})
 
 @router.put("/{patient_id}", response_model=PatientOut)
 def update_patient(patient_id: str, data: PatientUpdate):
@@ -47,7 +53,7 @@ def update_patient(patient_id: str, data: PatientUpdate):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Không tìm thấy bệnh nhân có ID '{patient_id}' để cập nhật."
         )
-    return updated
+    return jsonable_encoder(updated, custom_encoder={ObjectId: str})
 
 @router.delete("/{patient_id}", status_code=status.HTTP_200_OK)
 def delete_patient(patient_id: str):
