@@ -1,12 +1,14 @@
 """
 Script sinh Dummy Data đạt định mức môn NoSQL:
-- >= 100 Hồ sơ Bệnh nhân (Collection: patients)
-- >= 100+ Lượt khám bệnh đa chuyên khoa (Collection: medical_records)
+- Mặc định hỗ trợ chế độ Append (giữ dữ liệu cũ) hoặc Reset.
+- Sinh hồ sơ Bệnh nhân (Collection: patients)
+- Sinh Lượt khám bệnh đa chuyên khoa (Collection: medical_records)
   Phân bổ đều vào 3 chuyên khoa: Tim Mạch, Da Liễu, Răng - Hàm - Mặt.
 """
 
 import sys
 import random
+import re
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -44,7 +46,7 @@ def generate_random_patient(index: int) -> dict:
     else:
         full_name = f"{random.choice(HO_LIST)} {random.choice(DEM_NU)} {random.choice(TEN_NU)}"
         
-    birth_year = random.randint(1950, 2020)
+    birth_year = random.randint(1945, 2024)
     birth_month = random.randint(1, 12)
     birth_day = random.randint(1, 28)
     dob = f"{birth_year:04d}-{birth_month:02d}-{birth_day:02d}"
@@ -58,8 +60,9 @@ def generate_random_patient(index: int) -> dict:
     else:
         allergies.append("Không có dị ứng")
 
+    code_str = f"{index:05d}" if index > 9999 else f"{index:04d}"
     return {
-        "patient_code": f"BN-{index:04d}",
+        "patient_code": f"BN-{code_str}",
         "full_name": full_name,
         "dob": dob,
         "gender": gender,
@@ -164,52 +167,109 @@ def generate_specialty_data(dept: str) -> tuple:
         
     return symptoms, diagnosis, specialty_data, prescriptions
 
-def seed_database(num_patients: int = 120, min_records: int = 150):
+def seed_database(num_patients: int = 10000, num_records: int = 18000, append: bool = True, batch_size: int = 1000):
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+        
     print(f"[*] Bắt đầu kết nối MongoDB...")
     db = get_db()
     patients_col = get_patients_collection()
     records_col = get_records_collection()
     
-    # Dọn dẹp dữ liệu cũ (reset collection)
-    print("[-] Xóa dữ liệu cũ trong collection 'patients' và 'medical_records'...")
-    patients_col.delete_many({})
-    records_col.delete_many({})
-    
-    print(f"[+] Đang tạo {num_patients} hồ sơ bệnh nhân mẫu...")
-    patient_docs = [generate_random_patient(i + 1) for i in range(num_patients)]
-    insert_res = patients_col.insert_many(patient_docs)
-    patient_ids = [str(pid) for pid in insert_res.inserted_ids]
-    print(f"[✓] Đã chèn thành công {len(patient_ids)} bệnh nhân.")
-    
-    print(f"[+] Đang tạo {min_records} bệnh án đa chuyên khoa...")
+    if not append:
+        # Dọn dẹp dữ liệu cũ (reset collection)
+        print("[-] Xóa dữ liệu cũ trong collection 'patients' và 'medical_records'...")
+        patients_col.delete_many({})
+        records_col.delete_many({})
+        start_patient_idx = 1
+        start_record_idx = 1
+    else:
+        print("[+] Chế độ APPEND: Giữ nguyên dữ liệu hiện tại.")
+        # Tìm mã bệnh nhân cao nhất hiện tại
+        max_p = 0
+        for p in patients_col.find({}, {"patient_code": 1}):
+            code = p.get("patient_code", "")
+            m = re.search(r"\d+", code)
+            if m:
+                max_p = max(max_p, int(m.group()))
+        start_patient_idx = max_p + 1
+
+        # Tìm mã bệnh án cao nhất hiện tại
+        max_r = 0
+        for r in records_col.find({}, {"record_code": 1}):
+            code = r.get("record_code", "")
+            parts = code.split("-")
+            if len(parts) >= 3 and parts[-1].isdigit():
+                max_r = max(max_r, int(parts[-1]))
+        start_record_idx = max_r + 1
+
+    print(f"[*] Trạng thái trước khi import: {patients_col.count_documents({})} bệnh nhân, {records_col.count_documents({})} bệnh án.")
+    print(f"[*] Chỉ số bắt đầu: Bệnh nhân = BN-{start_patient_idx:04d}, Bệnh án = BA-2026-{start_record_idx:04d}")
+    print(f"[+] Đang tạo {num_patients} hồ sơ bệnh nhân mới theo lô (batch_size={batch_size})...")
+
+    patient_ids = []
+    total_p_batches = (num_patients + batch_size - 1) // batch_size
+    for b in range(total_p_batches):
+        b_start = b * batch_size
+        b_end = min((b + 1) * batch_size, num_patients)
+        batch_docs = [generate_random_patient(start_patient_idx + i) for i in range(b_start, b_end)]
+        insert_res = patients_col.insert_many(batch_docs)
+        patient_ids.extend([str(pid) for pid in insert_res.inserted_ids])
+        print(f"    -> Đã chèn {len(patient_ids)}/{num_patients} bệnh nhân...")
+
+    print(f"[✓] Hoàn thành chèn {len(patient_ids)} bệnh nhân mới.")
+
+    print(f"[+] Đang chuẩn bị {num_records} bệnh án đa chuyên khoa cho {num_patients} bệnh nhân mới...")
+    # Phân bổ lượt khám cho num_patients bệnh nhân sao cho tổng số lượt khám = num_records
+    # Với 10,000 bệnh nhân và 18,000 bệnh án:
+    # 5,000 BN khám 1 lần, 2,500 BN khám 2 lần, 2,000 BN khám 3 lần, 500 BN khám 4 lần.
+    # Tổng: 5000 + 5000 + 6000 + 2000 = 18,000 ca.
+    if num_patients == 10000 and num_records == 18000:
+        visit_counts = [1] * 5000 + [2] * 2500 + [3] * 2000 + [4] * 500
+    else:
+        visit_counts = [1] * num_patients
+        remaining = max(0, num_records - num_patients)
+        idx = 0
+        while remaining > 0 and idx < num_patients:
+            add = min(random.randint(1, 3), remaining)
+            visit_counts[idx] += add
+            remaining -= add
+            idx += 1
+    random.shuffle(visit_counts)
+
+    # Phân bổ đều cho 3 chuyên khoa
     departments = ["TIM_MACH", "DA_LIEU", "RANG_HAM_MAT"]
-    record_docs = []
-    
-    record_counter = 1
-    # Đảm bảo mỗi bệnh nhân có ít nhất 1 lượt khám, một số bệnh nhân có nhiều lượt khám để test tỷ lệ tái khám
-    for pid in patient_ids:
-        # 60% bệnh nhân khám 1 lần, 25% khám 2 lần, 15% khám 3-4 lần
-        r = random.random()
-        if r < 0.60:
-            num_visits = 1
-        elif r < 0.85:
-            num_visits = 2
-        else:
-            num_visits = random.randint(3, 4)
-            
+    quota_per_dept = num_records // 3
+    dept_pool = (
+        ["TIM_MACH"] * quota_per_dept +
+        ["DA_LIEU"] * quota_per_dept +
+        ["RANG_HAM_MAT"] * (num_records - 2 * quota_per_dept)
+    )
+    random.shuffle(dept_pool)
+
+    record_counter = start_record_idx
+    dept_idx = 0
+    record_batch = []
+    inserted_records_count = 0
+
+    print(f"[+] Bắt đầu tạo và chèn dữ liệu bệnh án theo lô (batch_size={batch_size})...")
+    for i, pid in enumerate(patient_ids):
+        num_visits = visit_counts[i]
         base_date = datetime.utcnow() - timedelta(days=random.randint(60, 300))
         for v in range(num_visits):
-            dept = random.choice(departments)
+            dept = dept_pool[dept_idx]
+            dept_idx += 1
             doctor = random.choice(DOCTORS[dept])
             symptoms, diagnosis, specialty_data, prescriptions = generate_specialty_data(dept)
-            
+
             visit_date = base_date + timedelta(days=v * random.randint(14, 45))
             follow_up = random.choice([True, False])
             follow_up_date = visit_date + timedelta(days=30) if follow_up else None
-            
+
+            rec_code_str = f"{record_counter:05d}" if record_counter > 9999 else f"{record_counter:04d}"
             rec = {
                 "patient_id": pid,
-                "record_code": f"BA-2026-{record_counter:04d}",
+                "record_code": f"BA-2026-{rec_code_str}",
                 "department": dept,
                 "doctor_name": doctor,
                 "visit_date": visit_date,
@@ -221,12 +281,22 @@ def seed_database(num_patients: int = 120, min_records: int = 150):
                 "follow_up_date": follow_up_date,
                 "created_at": visit_date
             }
-            record_docs.append(rec)
+            record_batch.append(rec)
             record_counter += 1
-            
-    records_col.insert_many(record_docs)
-    print(f"[✓] Đã chèn thành công {len(record_docs)} hồ sơ bệnh án đa chuyên khoa.")
-    
+
+            if len(record_batch) >= batch_size:
+                records_col.insert_many(record_batch)
+                inserted_records_count += len(record_batch)
+                print(f"    -> Đã chèn {inserted_records_count}/{num_records} bệnh án...")
+                record_batch = []
+
+    if record_batch:
+        records_col.insert_many(record_batch)
+        inserted_records_count += len(record_batch)
+        print(f"    -> Đã chèn {inserted_records_count}/{num_records} bệnh án...")
+
+    print(f"[✓] Đã chèn thành công {inserted_records_count} hồ sơ bệnh án mới.")
+
     # Thống kê nhanh kết quả
     print("\n================== TỔNG KẾT BỘ DỮ LIỆU MẪU ==================")
     print(f"Tổng số bệnh nhân (patients): {patients_col.count_documents({})}")
@@ -237,4 +307,17 @@ def seed_database(num_patients: int = 120, min_records: int = 150):
     print("============================================================\n")
 
 if __name__ == "__main__":
-    seed_database()
+    import argparse
+    parser = argparse.ArgumentParser(description="Seed dummy data to MongoDB")
+    parser.add_argument("--patients", type=int, default=10000, help="Số bệnh nhân cần sinh")
+    parser.add_argument("--records", type=int, default=18000, help="Số bệnh án cần sinh")
+    parser.add_argument("--batch-size", type=int, default=1000, help="Kích thước lô insert")
+    parser.add_argument("--reset", action="store_true", help="Xóa dữ liệu cũ trước khi nạp")
+    args = parser.parse_args()
+    
+    seed_database(
+        num_patients=args.patients,
+        num_records=args.records,
+        append=not args.reset,
+        batch_size=args.batch_size
+    )

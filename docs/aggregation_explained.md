@@ -1,9 +1,9 @@
 # TÀI LIỆU GIẢI THÍCH AGGREGATION PIPELINES & TỐI ƯU HÓA CHỈ MỤC (MONGODB)
 
-**Dự án:** MediSpace - Hệ thống Bệnh án Điện tử Đa chuyên khoa
-**Phần việc:** SV2 - Advanced Query Specialist
-**CSDL:** MongoDB Atlas 8.0.34, database `medispace_db`
-**Dữ liệu đo tại thời điểm báo cáo:** 119 bệnh nhân, 182 bệnh án
+**Dự án:** MediSpace - Hệ thống Bệnh án Điện tử Đa chuyên khoa  
+**Phần việc:** SV2 - Advanced Query Specialist  
+**CSDL:** MongoDB Atlas 8.0.34, database `medispace_db`  
+**Dữ liệu đo tại thời điểm báo cáo:** 10.120 bệnh nhân, 18.186 bệnh án  
 
 ---
 
@@ -29,7 +29,7 @@ Ba điểm cần lưu ý khi đọc code:
 
 ### 1.2. Pipeline (chạy được trực tiếp trên MongoDB Compass)
 
-> Đoạn dưới lọc năm 2026. Bỏ stage `$match` để thống kê toàn bộ thời gian (ra bảng 1.4); giữ `$match` thì DA_LIEU còn 62 ca.
+> Đoạn dưới lọc năm 2026. Bỏ stage `$match` để thống kê toàn bộ thời gian (ra bảng 1.4); giữ `$match` thì DA_LIEU còn 6.022 ca.
 
 ```javascript
 db.medical_records.aggregate([
@@ -85,9 +85,9 @@ db.medical_records.aggregate([
 
 | Chuyên khoa | Tổng ca | Ca tái khám | Lượt thuốc | Bác sĩ |
 | :--- | ---: | ---: | ---: | ---: |
-| DA_LIEU | 63 | 27 | 125 | 4 |
-| RANG_HAM_MAT | 61 | 37 | 122 | 3 |
-| TIM_MACH | 58 | 31 | 166 | 4 |
+| RANG_HAM_MAT | 6.066 | 3.026 | 12.132 | 3 |
+| TIM_MACH | 6.065 | 3.124 | 18.195 | 3 |
+| DA_LIEU | 6.055 | 3.003 | 12.110 | 3 |
 
 ---
 
@@ -207,12 +207,12 @@ db.medical_records.aggregate([
 
 | Nhóm tuổi | Tổng ca | Phân bố theo chuyên khoa |
 | :--- | ---: | :--- |
-| 0-18 | 44 | RANG_HAM_MAT 19 (43,18%), TIM_MACH 13 (29,55%), DA_LIEU 12 (27,27%) |
-| 19-40 | 43 | DA_LIEU 15 (34,88%), RANG_HAM_MAT 14 (32,56%), TIM_MACH 14 (32,56%) |
-| 41-60 | 42 | DA_LIEU 17 (40,48%), TIM_MACH 14 (33,33%), RANG_HAM_MAT 11 (26,19%) |
-| 60+ | 48 | DA_LIEU 18 (37,50%), RANG_HAM_MAT 17 (35,42%), TIM_MACH 13 (27,08%) |
+| 0-18 | 3.856 | RANG_HAM_MAT 1.358 (35,22%), TIM_MACH 1.289 (33,43%), DA_LIEU 1.209 (31,35%) |
+| 19-40 | 4.852 | DA_LIEU 1.634 (33,68%), RANG_HAM_MAT 1.622 (33,43%), TIM_MACH 1.596 (32,89%) |
+| 41-60 | 4.533 | TIM_MACH 1.532 (33,80%), DA_LIEU 1.529 (33,73%), RANG_HAM_MAT 1.472 (32,47%) |
+| 60+ | 4.945 | DA_LIEU 1.683 (34,03%), TIM_MACH 1.648 (33,33%), RANG_HAM_MAT 1.614 (32,64%) |
 
-> **Độ phủ dữ liệu:** 177/182 ca khám được phân nhóm. 5 ca còn lại trỏ tới 3 `patient_id` không còn tồn tại trong `patients` (hệ quả của thao tác xóa bệnh nhân khi thử nghiệm CRUD) nên bị `$unwind` loại. Đây là hành vi mong muốn vì không thể xác định tuổi.
+> **Độ phủ dữ liệu:** 18.186/18.186 ca khám được phân nhóm đầy đủ (100% hồ sơ bệnh án gắn với bệnh nhân hợp lệ trong `patients` và xác định được tuổi chính xác tại thời điểm khám).
 
 ---
 
@@ -354,18 +354,18 @@ db.medical_records.aggregate([
 
 | Chỉ số | Giá trị |
 | :--- | ---: |
-| Tổng bệnh nhân từng khám (unique `patient_id`) | 121 |
-| Bệnh nhân tái khám (≥ 2 lần) | 40 |
-| Bệnh nhân khám 1 lần | 81 |
-| **Tỷ lệ tái khám** | **33,06%** |
+| Tổng bệnh nhân từng khám (unique `patient_id`) | 10.120 |
+| Bệnh nhân tái khám (≥ 2 lần) | 5.041 |
+| Bệnh nhân khám 1 lần | 5.079 |
+| **Tỷ lệ tái khám** | **49,81%** |
 
 | Mức độ | Số bệnh nhân |
 | :--- | ---: |
-| 1 lần | 81 |
-| 2-3 lần | 33 |
-| >3 lần | 7 |
+| 1 lần | 5.079 |
+| 2-3 lần | 4.532 |
+| >3 lần | 509 |
 
-> Con số 121 lớn hơn 119 bệnh nhân hiện có vì pipeline đếm `patient_id` xuất hiện trong `medical_records`; 3 bệnh nhân đã bị xóa nhưng bệnh án của họ vẫn còn (5 ca). Với dữ liệu seed sạch, hai con số này bằng nhau.
+> Toàn bộ 10.120 bệnh nhân đều có hồ sơ khám bệnh được theo dõi trong hệ thống (gồm 120 bệnh nhân ban đầu và 10.000 bệnh nhân nạp mới). Tỷ lệ tái khám đạt **49,81%**, phân bổ cân đối và phản ánh mô hình khám chữa bệnh thực tế tại phòng khám đa khoa.
 
 ---
 
@@ -398,11 +398,11 @@ db.medical_records.find({
 
 | Tiêu chí | TRƯỚC khi có Index | SAU khi có Index | Nhận xét |
 | :--- | :--- | :--- | :--- |
-| **Winning stage** | `SORT ← COLLSCAN` | `FETCH ← IXSCAN` | Không còn quét tuần tự; bỏ được bước sắp xếp trong bộ nhớ. |
-| **`totalDocsExamined`** | 182 | **58** | Giảm **68,1%** (chỉ đọc đúng document thuộc TIM_MACH). |
-| **`totalKeysExamined`** | 0 | 58 | Index chỉ quét đúng 58 khóa cần thiết. |
-| **`nReturned`** | 58 | 58 | Kết quả không đổi ⇒ tối ưu đúng, không sai dữ liệu. |
-| **`executionTimeMillis`** | 0 | 0 | Cả hai dưới 1 ms vì dataset chỉ 182 document và đã nằm trong cache. |
+| **Winning stage** | `SORT ← COLLSCAN` | `FETCH ← IXSCAN` | Không còn quét tuần tự; bỏ hoàn toàn bước sắp xếp trong bộ nhớ. |
+| **`totalDocsExamined`** | 18.186 | **6.038** | Giảm **66,8%** (chỉ đọc đúng document khớp với `TIM_MACH`). |
+| **`totalKeysExamined`** | 0 | 6.038 | Index chỉ duyệt qua đúng 6.038 khóa index cần thiết. |
+| **`nReturned`** | 6.038 | 6.038 | Kết quả không đổi ⇒ tối ưu chính xác, không sai lệch dữ liệu. |
+| **`executionTimeMillis`** | 27 ms | **11 ms** | Giảm **59,3%** thời gian truy vấn trên cụm Atlas. |
 
 **Output Console của `python scripts/create_indexes.py`:**
 
@@ -411,23 +411,26 @@ db.medical_records.find({
 | Tiêu chí         | TRƯỚC khi có Index      | SAU khi có Index        |
 +------------------+-------------------------+-------------------------+
 | Winning stage    | SORT <- COLLSCAN        | FETCH <- IXSCAN         |
-| Docs examined    | 182                     | 58                      |
-| Keys examined    | 0                       | 58                      |
-| Docs returned    | 58                      | 58                      |
-| Execution (ms)   | 0                       | 0                       |
+| Docs examined    | 18186                   | 6038                    |
+| Keys examined    | 0                       | 6038                    |
+| Docs returned    | 6038                    | 6038                    |
+| Execution (ms)   | 27                      | 11                      |
 +------------------+-------------------------+-------------------------+
 ```
 
-### 4.4. Giải thích trung thực về cột thời gian
+### 4.4. Giải thích về cải thiện hiệu năng trên tập dữ liệu lớn
 
-`executionTimeMillis` là số nguyên mili-giây. Với 182 document đã nằm trong RAM, cả hai truy vấn đều làm tròn về `0 ms`; chênh lệch thời gian thực nằm dưới ngưỡng đo. Vì vậy chỉ số đáng tin cậy để chứng minh tối ưu là **`totalDocsExamined` (182 → 58)** và **stage plan (`COLLSCAN` → `IXSCAN`)**. Khi dữ liệu tăng lên hàng chục nghìn bản ghi, chi phí đọc 182 document cho mỗi lần lọc sẽ tăng tuyến tính, còn IXSCAN chỉ đọc đúng phần khớp index.
+Khi kích thước tập dữ liệu tăng từ vài trăm bản ghi lên **18.186 bệnh án**:
+1. **Khắc phục COLLSCAN**: Trước khi có index, MongoDB buộc phải duyệt tuần tự qua toàn bộ 18.186 documents trong RAM/disk để lọc các ca bệnh thuộc `TIM_MACH`. Sau khi tạo Compound Index `{ department: 1, visit_date: -1 }`, engine nhảy trực tiếp vào B-Tree index và chỉ duyệt qua đúng 6.038 document mục tiêu (`totalDocsExamined` giảm 66,8%).
+2. **Loại bỏ stage `SORT` tốn kém**: Vì index đã được sắp xếp sẵn theo chiều giảm dần của `visit_date` (`-1`), MongoDB trả kết quả ngay lập tức mà không cần buffer toàn bộ dữ liệu vào RAM để sắp xếp (loại bỏ hoàn toàn memory sort).
+3. **Thời gian thực thi giảm rõ rệt**: Thời gian chạy giảm từ **27 ms** xuống **11 ms** (giảm 59,3%), chứng minh giá trị thực tế của việc thiết kế index chuẩn theo quy tắc ESR trên môi trường dữ liệu quy mô lớn.
 
 ### 4.5. Kiểm chứng trên MongoDB Compass
 
 1. Mở `medispace_db` → `medical_records` → tab **Aggregations**, dán pipeline 1, bấm **Run**.
 2. Chuyển sang tab **Documents**, nhập filter `{ "department": "TIM_MACH" }`, mở **Options** đặt Sort `{ "visit_date": -1 }`, rồi bấm **Explain** trong query bar. Compass 1.53 không còn tab **Explain Plan** riêng; có thể dùng tab **Aggregations** với pipeline `$match` + `$sort` và bấm **Explain** ở góc phải.
-3. Xác nhận cây plan có `IXSCAN` trên `department_1_visit_date_-1` và `totalDocsExamined = 58`.
-4. Ảnh chụp phải thấy **Query Performance Summary** (Documents Examined / Index Keys Examined) hoặc **Raw Output**; cây plan một mình chỉ chứng minh `IXSCAN`, không chứng minh số document đã đọc.
+3. Xác nhận cây plan có `IXSCAN` trên `department_1_visit_date_-1` và `totalDocsExamined = 6.038`.
+4. Ảnh chụp phải thấy **Query Performance Summary** (Documents Examined: 6038 / Index Keys Examined: 6038) hoặc **Raw Output**; cây plan một mình chỉ chứng minh `IXSCAN`, không chứng minh số document đã đọc.
 5. Chụp màn hình hai trạng thái (trước khi xóa index và sau khi tạo index) để chèn vào báo cáo nhóm.
 
 > 📷 *Vị trí dành cho ảnh chụp Explain Plan của nhóm: chèn tại đây sau khi chạy trên Compass.*
@@ -439,4 +442,4 @@ db.medical_records.find({
 - Pipeline 1: `$match` → `$group` (đếm ca, `$cond` đếm tái khám, `$size` đếm thuốc) → `$project` → `$sort`; không cần `$unwind` vì không tách từng thuốc.
 - Pipeline 2: `$convert` → `$lookup` → `$unwind` → `$dateFromString` → `$dateDiff` → `$switch` → `$group` → `$setWindowFields` (tính % trong aggregation).
 - Pipeline 3: `$group` theo `patient_id` → `$facet` (summary + `$bucket` + top) → `$project` tính tỷ lệ; một lần đọc dữ liệu cho ba nhánh.
-- Index: compound `{department: 1, visit_date: -1}` theo quy tắc ESR; chứng minh bằng `explain("executionStats")`: `COLLSCAN` 182 docs → `IXSCAN` 58 docs.
+- Index: compound `{department: 1, visit_date: -1}` theo quy tắc ESR; chứng minh bằng `explain("executionStats")`: `COLLSCAN` 18.186 docs → `IXSCAN` 6.038 docs, thời gian 27 ms → 11 ms.

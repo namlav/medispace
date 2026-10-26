@@ -11,7 +11,7 @@
 | :--- | :--- | :--- | :--- |
 | **SV1** | **Data Architect & CRUD Lead** | **3.75 điểm**<br>• 1.25đ: Thiết kế Schema Document đa chuyên khoa & giải trình NoSQL.<br>• 2.50đ: Chức năng CRUD Bệnh nhân, Bệnh án & Đơn thuốc. | `feat/sv1-db-models`<br>`feat/sv1-patient-crud`<br>`feat/sv1-record-crud` |
 | **SV2** | **Advanced Query Specialist** | **2.50 điểm**<br>• 2.50đ: 3 Aggregation Pipelines (Khoa, Độ tuổi, Tái khám) + Tối ưu hóa chỉ mục (Indexes). | `feat/sv2-dept-stats`<br>`feat/sv2-age-revisit`<br>`feat/sv2-indexes` |
-| **SV3** | **Fullstack Integrator & DB Tester** | **3.75 điểm**<br>• 1.00đ: Bộ Dummy Data đạt định mức $\ge 100$ BN, $\ge 100$ Bệnh án.<br>• 1.25đ: Giao diện nhập bệnh án động (Streamlit).<br>• 1.50đ: Quy trình Backup/Restore trên GUI Tool (Compass) & điều phối demo. | `feat/sv3-dummy-data`<br>`feat/sv3-dynamic-ui`<br>`docs/sv3-backup-demo` |
+| **SV3** | **Fullstack Integrator & DB Tester** | **3.75 điểm**<br>• 1.00đ: Bộ Dummy Data đạt định mức $\ge 100$ BN, $\ge 100$ Bệnh án (thực tế nạp $10.120$ BN, $18.186$ Bệnh án).<br>• 1.25đ: Giao diện nhập bệnh án động (Streamlit).<br>• 1.50đ: Quy trình Backup/Restore trên GUI Tool (Compass) & điều phối demo. | `feat/sv3-dummy-data`<br>`feat/sv3-dynamic-ui`<br>`docs/sv3-backup-demo` |
 
 ---
 
@@ -60,7 +60,7 @@
   4. [ ] **Tối ưu hóa chỉ mục (Indexes)**:
      - Tạo Single Index: `patient_code` (unique), `patient_id`.
      - Tạo Compound Index: `{ department: 1, visit_date: -1 }`.
-     - Chạy script đo lường hiệu năng bằng `.explain("executionStats")` trước và sau index (chứng minh bước nhảy từ `COLLSCAN` sang `IXSCAN`).
+     - Chạy script đo lường hiệu năng bằng `.explain("executionStats")` trước và sau index trên tập $18.186$ bệnh án (chứng minh bước nhảy từ `COLLSCAN` sang `IXSCAN`, giảm 66,8% docs examined và giảm 59,3% thời gian).
   5. [ ] **Nhiệm vụ trong buổi Demo bảo vệ**: Kích hoạt báo cáo thống kê dịch tễ trên giao diện, giải thích ý nghĩa từng stage trong câu lệnh Aggregation và trình chiếu chỉ số tối ưu của index.
 * **Các file phụ trách chính**:
   - `backend/app/services/analytics_service.py`
@@ -74,15 +74,15 @@
 * **Mục tiêu**: Đảm bảo toàn vẹn dữ liệu mẫu đạt chuẩn định mức, xây dựng UI trực quan và làm chủ quy trình Backup/Restore.
 * **Danh sách đầu việc chi tiết**:
   1. [ ] **Xây dựng Script nạp dữ liệu mẫu (`seed_data.py`)**:
-     - Sinh tối thiểu **100+ Document hồ sơ bệnh nhân** với thông tin tự nhiên (họ tên tiếng Việt, ngày sinh, địa chỉ, nhóm máu, tiền sử dị ứng).
-     - Sinh tối thiểu **100+ Lượt khám bệnh** phân bổ đều vào $\ge 3$ chuyên khoa (Tim Mạch, Da Liễu, Răng - Hàm - Mặt) với dữ liệu trường lâm sàng phong phú.
-     - Đảm bảo tỷ lệ tái khám thực tế (nhiều bệnh nhân có $\ge 2$ lượt khám).
+     - Sinh quy mô lớn **10.120 Document hồ sơ bệnh nhân** với thông tin tự nhiên (họ tên tiếng Việt, ngày sinh, địa chỉ, nhóm máu, tiền sử dị ứng).
+     - Sinh quy mô lớn **18.186 Lượt khám bệnh** phân bổ đều vào 3 chuyên khoa (Tim Mạch, Da Liễu, Răng - Hàm - Mặt) với dữ liệu trường lâm sàng phong phú.
+     - Đảm bảo tỷ lệ tái khám thực tế đạt 49,81% (hơn 5.000 bệnh nhân có $\ge 2$ lượt khám).
   2. [ ] **Xây dựng Giao diện người dùng (Streamlit UI)**:
      - Trang 1: Quản lý danh sách bệnh nhân và form thêm mới.
      - Trang 2: **Form nhập bệnh án động (Dynamic Form)** - Chọn chuyên khoa nào thì giao diện tự động thay đổi các trường dữ liệu lâm sàng đặc thù của chuyên khoa đó.
      - Trang 3: Dashboard biểu đồ trực quan hóa dữ liệu thống kê từ các pipeline của SV2.
   3. [ ] **Quy trình Backup & Restore CSDL**:
-     - Soạn thảo tài liệu và thực hành thành thạo thao tác Export/Import JSON trên **MongoDB Compass**.
+     - Soạn thảo tài liệu và thực hành thành thạo thao tác Export/Import JSON trên **MongoDB Compass** (với 18.186 bản ghi).
      - Xây dựng script sao lưu phục hồi dòng lệnh `mongodump` và `mongorestore`.
   4. [ ] **Nhiệm vụ trong buổi Demo bảo vệ**:
      - Điều phối máy chiếu và trình chiếu kịch bản demo.
@@ -113,9 +113,9 @@ Tuần 4 (Sprint 4): Kiểm thử Backup/Restore, đóng gói báo cáo & diễn
 
 ## 🎯 4. BẢNG CHECKLIST SẴN SÀNG CHO BUỔI BẢO VỆ
 
-- [x] Đã nạp đủ $\ge 100$ bệnh nhân và $\ge 100$ bệnh án vào MongoDB (`seed_data.py`).
+- [x] Đã nạp $10.120$ bệnh nhân và $18.186$ bệnh án vào MongoDB (`seed_data.py`).
 - [x] Đã thiết lập Compound Index `{ department: 1, visit_date: -1 }` và lưu kết quả `explain()`.
 - [x] Form nhập bệnh án động hoạt động trơn tru cho 3 chuyên khoa trên Streamlit.
 - [x] 3 Aggregation Pipelines hiển thị biểu đồ và cú pháp truy vấn trực quan.
-- [x] File backup dữ liệu đã được xuất sẵn dự phòng trong thư mục `./backup/`.
+- [x] Quy trình backup dữ liệu đã được kiểm thử và hướng dẫn chi tiết trong `docs/backup_restore_guide.md`.
 - [x] Cả 3 thành viên nắm vững kịch bản phối hợp trong `docs/demo_script.md`.

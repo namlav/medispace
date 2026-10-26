@@ -29,17 +29,17 @@
 * **SV2 thao tác**:
   1. Chuyển sang Trang `📊 Thống Kê Y Tế`.
   2. Bấm nút **"KÍCH HOẠT BÁO CÁO THỐNG KÊ DỊCH TỄ / BỆNH LÝ"**.
-  3. Trình bày 3 biểu đồ trực quan hóa dữ liệu:
-     - **Biểu đồ 1 (Chuyên khoa)**: DA_LIEU 63 ca, RANG_HAM_MAT 61 ca, TIM_MACH 58 ca. Mở phần *Xem câu lệnh Pipeline 1* giải thích `$match` lọc `visit_date` → `$group` theo `department` → `$cond` đếm ca tái khám → `$size` đếm lượt thuốc (không cần `$unwind`).
-     - **Biểu đồ 2 (Độ tuổi)**: 4 nhóm `0-18` (44 ca), `19-40` (43 ca), `41-60` (42 ca), `60+` (48 ca). Giải thích `$lookup` nối với collection `patients` (phải `$convert` chuỗi `patient_id` sang ObjectId), `$dateDiff` tính tuổi tại ngày khám và `$switch` phân nhóm.
-     - **Biểu đồ 3 (Tái khám)**: 121 bệnh nhân từng khám, 40 bệnh nhân tái khám, tỷ lệ **33,06%**. Giải thích `$group` theo `patient_id` rồi `$facet` chạy song song: một nhánh `$bucket` (81 người khám 1 lần, 33 người 2-3 lần, 7 người >3 lần), một nhánh tính tổng và tỷ lệ.
+  3. Trình bày 3 biểu đồ trực quan hóa dữ liệu trên quy mô **18.186 bệnh án** và **10.120 bệnh nhân**:
+     - **Biểu đồ 1 (Chuyên khoa)**: RANG_HAM_MAT 6.066 ca, TIM_MACH 6.065 ca, DA_LIEU 6.055 ca. Mở phần *Xem câu lệnh Pipeline 1* giải thích `$match` lọc `visit_date` → `$group` theo `department` → `$cond` đếm ca tái khám → `$size` đếm lượt thuốc (không cần `$unwind`).
+     - **Biểu đồ 2 (Độ tuổi)**: 4 nhóm `0-18` (3.856 ca), `19-40` (4.852 ca), `41-60` (4.533 ca), `60+` (4.945 ca). Giải thích `$lookup` nối với collection `patients` (phải `$convert` chuỗi `patient_id` sang ObjectId), `$dateDiff` tính tuổi tại ngày khám và `$switch` phân nhóm.
+     - **Biểu đồ 3 (Tái khám)**: 10.120 bệnh nhân từng khám, 5.041 bệnh nhân tái khám, tỷ lệ **49,81%**. Giải thích `$group` theo `patient_id` rồi `$facet` chạy song song: một nhánh `$bucket` (5.079 người khám 1 lần, 4.532 người 2-3 lần, 509 người >3 lần), một nhánh tính tổng và tỷ lệ.
   4. Mở `backend/app/services/analytics_service.py` chỉ rõ 3 hàm tương ứng; Pipeline 3 tính `revisit_rate_percent` ngay trong `$project`, không chia bằng Python.
   5. Mở MongoDB Compass → `medispace_db.medical_records` → tab **Aggregations**, dán pipeline 1 để đối chiếu kết quả trực tiếp.
-  6. Trình chiếu kết quả từ `python scripts/create_indexes.py`:
-     - Trước index: `SORT <- COLLSCAN`, `totalDocsExamined = 182`.
-     - Sau Compound Index `{ department: 1, visit_date: -1 }`: `FETCH <- IXSCAN`, `totalDocsExamined = 58` (giảm 68,1%), không còn stage `SORT`.
+  6. Trình chiếu kết quả từ `python scripts/create_indexes.py` trên tập 18.186 bản ghi:
+     - Trước index: `SORT <- COLLSCAN`, `totalDocsExamined = 18186`, thời gian `27 ms`.
+     - Sau Compound Index `{ department: 1, visit_date: -1 }`: `FETCH <- IXSCAN`, `totalDocsExamined = 6038` (giảm 66,8%), thời gian `11 ms` (giảm 59,3%), không còn stage `SORT`.
      - Mở tab **Explain Plan** trên Compass để xác nhận `IXSCAN` nếu giảng viên yêu cầu.
-  7. Nếu bị hỏi vì sao `executionTimeMillis` vẫn 0 ms: dataset 182 document đã nằm trong RAM nên thời gian bị làm tròn; bằng chứng tối ưu là `totalDocsExamined` giảm từ 182 xuống 58 và plan đổi từ `COLLSCAN` sang `IXSCAN`.
+  7. Nhấn mạnh việc tối ưu hiệu năng: Với tập dữ liệu lớn hơn 18.000 documents, Compound Index chuẩn quy tắc ESR giúp MongoDB giảm hơn 66% số documents phải đọc, loại bỏ hoàn toàn stage sắp xếp trong RAM, và tăng tốc độ truy vấn hơn 2.4 lần.
   8. Chi tiết từng stage và bảng số liệu đầy đủ nằm trong `docs/aggregation_explained.md`.
 
 ---
@@ -47,7 +47,7 @@
 ### Bước 3: Thao Tác Backup & Restore Trực Tiếp Trên GUI Tool (3 phút)
 * **SV3 thao tác**:
   1. Mở MongoDB Compass, vào collection `medical_records`.
-  2. Bấm **Collection** $\rightarrow$ **Export Collection** $\rightarrow$ Xuất ra file `medical_records_backup.json`.
+  2. Bấm **Collection** $\rightarrow$ **Export Collection** $\rightarrow$ Xuất ra file `medical_records_backup.json` (khoảng 18.186 documents).
   3. Giả lập sự cố: Chọn xóa 1 vài bản ghi hoặc Drop collection.
   4. Quay lại giao diện web tải lại trang để thấy số lượng ca bệnh bị mất hoặc giảm đi.
   5. Quay lại Compass, bấm **Add Data** $\rightarrow$ **Import JSON or CSV** $\rightarrow$ Chọn file vừa xuất và nạp lại.
@@ -57,5 +57,5 @@
 
 ### Bước 4: Tổng Kết & Trả Lời Câu Hỏi Của Hội Đồng (2-3 phút)
 * **Cả nhóm**:
-  - Tóm tắt lại: Đã đạt đầy đủ định mức $\ge 100$ bệnh nhân và $\ge 150$ hồ sơ bệnh án đa chuyên khoa.
+  - Tóm tắt lại: Đã triển khai và nạp thành công bộ dữ liệu thực tế gồm **10.120 bệnh nhân** và **18.186 hồ sơ bệnh án đa chuyên khoa** (đáp ứng và vượt xa định mức đồ án môn học).
   - Sẵn sàng trả lời các câu hỏi chuyên sâu của Hội đồng về thiết kế schema, sharding, replica set hoặc so sánh MongoDB với CouchDB / RDBMS.

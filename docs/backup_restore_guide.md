@@ -13,7 +13,7 @@
 3. Bấm vào menu **Collection** ở thanh trên cùng $\rightarrow$ Chọn **Export Collection**.
 4. Chọn tùy chọn: **Export full collection** $\rightarrow$ Bấm **Select Fields** (giữ nguyên toàn bộ các trường).
 5. Chọn định dạng: **JSON** $\rightarrow$ Chọn đường dẫn lưu file (ví dụ: `E:\nosql_subj\medispace\backup\medical_records.json`).
-6. Bấm **Export** $\rightarrow$ Chờ thông báo thành công (ví dụ: *150 documents exported*).
+6. Bấm **Export** $\rightarrow$ Chờ thông báo thành công (ví dụ: *18.186 documents exported*).
 
 ### 1.2. Thao tác mô phỏng sự cố & Restore trên Compass
 1. **Mô phỏng sự cố mất dữ liệu**:

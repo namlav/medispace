@@ -36,7 +36,7 @@ Hệ thống quản lý hồ sơ bệnh nhân, hỗ trợ ghi nhận bệnh án 
    - Pipeline 3: Tính toán tần suất và tỷ lệ tái khám của bệnh nhân (`$facet`, `$bucket`).
    - Tối ưu hóa truy vấn với Compound Index `{ department: 1, visit_date: -1 }` (chứng minh qua `explain("executionStats")`).
 4. **Kiểm thử hiệu năng & Demo trực quan (2.5đ)**:
-   - **Dummy Data**: Script sinh tự động $\ge 120$ hồ sơ bệnh nhân và $\ge 150$ lượt khám bệnh phân bổ 3 chuyên khoa.
+   - **Dummy Data**: Script sinh tự động và hỗ trợ mở rộng quy mô lớn: $10.120$ hồ sơ bệnh nhân và $18.186$ lượt khám bệnh phân bổ đều 3 chuyên khoa.
    - **Demo sống**: Form nhập bệnh án động (Streamlit) + MongoDB Compass + Quy trình Backup/Restore.
 
 ---
@@ -47,7 +47,7 @@ Hệ thống quản lý hồ sơ bệnh nhân, hỗ trợ ghi nhận bệnh án 
 | :--- | :--- | :--- | :--- |
 | **SV1** | **Data Architect & CRUD Lead** | Thiết kế Document schema đa chuyên khoa, lập trình API CRUD Bệnh nhân & Bệnh án, thao tác nhập bệnh án demo | `feat/sv1-db-models`<br>`feat/sv1-patient-crud`<br>`feat/sv1-record-crud` |
 | **SV2** | **Advanced Query Specialist** | Xây dựng 3 Aggregation Pipelines (Khoa, Độ tuổi, Tái khám), tối ưu hóa Index & đo đạc `executionStats` | `feat/sv2-dept-stats`<br>`feat/sv2-age-revisit`<br>`feat/sv2-indexes` |
-| **SV3** | **Fullstack Integrator & DB Tester** | Script nạp 100+ Dummy Data, thiết kế Form nhập bệnh án động (Streamlit), thực hiện Backup/Restore trên GUI và điều phối Demo | `feat/sv3-dummy-data`<br>`feat/sv3-dynamic-ui`<br>`docs/sv3-demo-backup` |
+| **SV3** | **Fullstack Integrator & DB Tester** | Script nạp Dummy Data quy mô lớn (10.000+ BN, 18.000+ bệnh án), thiết kế Form nhập bệnh án động (Streamlit), thực hiện Backup/Restore trên GUI và điều phối Demo | `feat/sv3-dummy-data`<br>`feat/sv3-dynamic-ui`<br>`docs/sv3-demo-backup` |
 
 *(Chi tiết xem tại: [PHAN_CONG_NHIEM_VU.md](PHAN_CONG_NHIEM_VU.md))*
 
@@ -71,7 +71,7 @@ medispace/
 │       ├── Kham_Benh_Dong.py  # Form khám bệnh động theo chuyên khoa
 │       └── Thong_Ke_Y_Te.py   # Dashboard biểu đồ thống kê từ Aggregation
 ├── scripts/
-│   ├── seed_data.py        # Sinh >= 100 BN và >= 150 bệnh án mẫu
+│   ├── seed_data.py        # Sinh dữ liệu mẫu (10.120 BN và 18.186 bệnh án mẫu)
 │   ├── create_indexes.py   # Thiết lập Index & đo lường executionStats
 │   └── backup_restore.bat  # Script sao lưu/phục hồi bằng mongodump/mongorestore
 ├── docs/
@@ -111,11 +111,12 @@ CORS_ORIGINS=http://localhost:8501,http://127.0.0.1:8501
 *(Local dùng `.env`; khi deploy production đặt `APP_ENV=production` để biến môi trường OS được ưu tiên)*
 
 ### Bước 3: Nạp dữ liệu mẫu đạt chuẩn định mức (Dummy Data)
-#### (SV1 phụ trách)
+#### (SV1 & SV3 phụ trách)
 ```bash
-python scripts/seed_data.py
+# Nạp thêm dữ liệu (chế độ append giữ nguyên dữ liệu cũ)
+python scripts/seed_data.py --patients 10000 --records 18000
 ```
-*Kết quả:* Nạp thành công $\ge 120$ bệnh nhân và $\ge 150$ bệnh án phân bổ vào 3 chuyên khoa.
+*Kết quả:* Nạp thành công $10.120$ bệnh nhân và $18.186$ bệnh án phân bổ đều vào 3 chuyên khoa.
 
 ### Bước 4: Tạo và tối ưu Index
 #### (SV2 phụ trách)
