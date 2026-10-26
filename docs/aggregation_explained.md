@@ -433,7 +433,8 @@ Khi kích thước tập dữ liệu tăng từ vài trăm bản ghi lên **18.1
 4. Ảnh chụp phải thấy **Query Performance Summary** (Documents Examined: 6038 / Index Keys Examined: 6038) hoặc **Raw Output**; cây plan một mình chỉ chứng minh `IXSCAN`, không chứng minh số document đã đọc.
 5. Chụp màn hình hai trạng thái (trước khi xóa index và sau khi tạo index) để chèn vào báo cáo nhóm.
 
-> 📷 *Vị trí dành cho ảnh chụp Explain Plan của nhóm: chèn tại đây sau khi chạy trên Compass.*
+> 📷 Trước khi tạo index ![alt text](explainplan-pipeline1-noidx.png)
+> 📷 Sau khi tạo index ![alt text](explainplan-pipeline1-idx.png)
 
 ---
 
