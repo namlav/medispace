@@ -203,7 +203,11 @@ with tab_search:
     
     col_s1, col_s2 = st.columns([3, 1])
     with col_s1:
-        search_query = st.text_input("Tìm kiếm theo Mã bệnh án, Mã BN, Tên bệnh nhân, Chẩn đoán...", key="search_record_query", placeholder="Nhập từ khóa...")
+        search_query = st.text_input(
+            "Tìm kiếm theo Mã bệnh án, Mã BN, Tên bệnh nhân, Chẩn đoán !", 
+            key="search_record_query", 
+            placeholder="Nhập từ khóa..."
+        )
     with col_s2:
         filter_dept = st.selectbox(
             "Lọc theo chuyên khoa:",
@@ -216,6 +220,40 @@ with tab_search:
             }.get(x, x),
             key="filter_dept_search"
         )
+
+    # 1. Gọi API lấy danh sách bệnh án (sau khi đã có search_query và filter_dept)
+    try:
+        dept_param = None if filter_dept == "Tất cả" else filter_dept
+        response_data = api_client.get_records(
+            search=search_query if search_query else None, 
+            department=dept_param
+        )
+        records = response_data.get("items", [])
+        total_rec = response_data.get("total", 0)
+    except Exception:
+        records = []
+        total_rec = 0
+
+    # 2. Trích xuất tên bác sĩ từ dữ liệu để kiểm tra
+    doctor_names = set()
+    for rec in records:
+        doc_name = rec.get("doctor_name")
+        if doc_name:
+            doctor_names.add(doc_name.strip().lower())
+
+    # 3. Kiểm tra nếu từ khóa nhập vào khớp với tên bác sĩ
+    is_searching_doctor = False
+    if search_query:
+        query_clean = search_query.strip().lower()
+        for doc_name in doctor_names:
+            if query_clean in doc_name or doc_name in query_clean:
+                is_searching_doctor = True
+                break
+    
+    # 4. Hiển thị thông báo chặn nếu tìm theo tên bác sĩ
+    if is_searching_doctor:
+        st.error("🚫 Thông tin bác sĩ không được sử dụng trong tìm kiếm! Vui lòng chỉ tìm theo thông tin bệnh nhân.")
+        records = []  # Xóa kết quả hiển thị
 
     try:
         dept_arg = None if filter_dept == "Tất cả" else filter_dept

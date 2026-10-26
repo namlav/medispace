@@ -1,0 +1,5 @@
+[33m88ce853[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #7 from namlav/feat/aggregation-pipelines
+[33mc950c6c[m[33m ([m[1;31morigin/feat/aggregation-pipelines[m[33m)[m Enhance aggregation documentation and optimize index setup script
+[33m552f666[m[33m ([m[1;31morigin/sv1-crud[m[33m)[m Merge pull request #6 from namlav/config
+[33mc12246f[m[33m ([m[1;31morigin/config[m[33m)[m feat: add patient management and medical record features with dynamic forms
+[33m9d31bb7[m Merge pull request #5 from namlav/sv1-crud
