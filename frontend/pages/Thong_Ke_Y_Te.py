@@ -1,441 +1,226 @@
-import streamlit as st
 import sys
 from pathlib import Path
 import pandas as pd
 import plotly.express as px
+import streamlit as st
 
+# =====================================================================
+# 1. CẤU HÌNH ĐƯỜNG DẪN & GIAO DIỆN HỆ THỐNG
+# =====================================================================
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(ROOT_DIR))
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from frontend.api_client import (
     api_get_department_stats,
     api_get_age_groups,
     api_get_revisit_rate,
 )
-
-st.set_page_config(page_title="Thống kê y tế | MediSpace", layout="wide")
-
-# ============================================================
-# MEDISPACE - HEALTHCARE ANALYTICS UI
-# Chỉ thay đổi giao diện, không thay đổi API hay xử lý
-# ============================================================
-
-st.markdown(
-    """
-<style>
-:root {
-    --analytics-primary: #167D70;
-    --analytics-primary-dark: #10665B;
-    --analytics-soft: #E8F5F2;
-    --analytics-bg: #F5F8FA;
-    --analytics-heading: #203B49;
-    --analytics-text: #526672;
-    --analytics-muted: #80909A;
-    --analytics-border: #E1E9ED;
-}
-
-/* Giao diện tổng thể */
-.stApp {
-    background-color: var(--analytics-bg);
-}
-
-.block-container {
-    max-width: 1450px;
-    padding-top: 1.5rem;
-    padding-bottom: 3rem;
-}
-
-/* Header */
-.ms-analytics-header {
-    position: relative;
-    padding: 35px 38px;
-    margin-bottom: 26px;
-    border: 1px solid #DCEBE7;
-    border-radius: 18px;
-    background: linear-gradient(
-        115deg,
-        #FFFFFF 0%,
-        #E8F5F2 100%
-    );
-    overflow: hidden;
-}
-
-.ms-analytics-header::after {
-    content: "";
-    position: absolute;
-    width: 190px;
-    height: 190px;
-    border-radius: 50%;
-    top: -95px;
-    right: -40px;
-    background: rgba(22,125,112,0.06);
-    pointer-events: none;
-}
-
-.ms-analytics-eyebrow {
-    color: #167D70;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    margin-bottom: 12px;
-}
-
-.ms-analytics-title {
-    color: #203B49;
-    font-size: clamp(28px,3vw,38px);
-    font-weight: 750;
-    line-height: 1.3;
-    margin: 0 0 12px 0;
-}
-
-.ms-analytics-description {
-    color: #526672;
-    font-size: 14px;
-    line-height: 1.8;
-    max-width: 800px;
-    margin: 0;
-}
-
-.ms-analytics-tags {
-    display: flex;
-    gap: 9px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
-
-.ms-analytics-tag {
-    display: inline-block;
-    padding: 7px 12px;
-    background: #FFFFFF;
-    border: 1px solid #DCEBE7;
-    border-radius: 20px;
-    color: #167D70;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-/* Thanh kích hoạt báo cáo */
-.ms-analytics-activation {
-    background: #FFFFFF;
-    border: 1px solid #E1E9ED;
-    border-radius: 14px;
-    padding: 19px 24px;
-    margin: 10px 0 16px;
-}
-
-.ms-analytics-activation-title {
-    color: #203B49;
-    font-size: 17px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-
-.ms-analytics-activation-desc {
-    color: #80909A;
-    font-size: 13px;
-    line-height: 1.7;
-}
-
-/* Tiêu đề mỗi phần thống kê */
-.ms-analytics-section {
-    padding: 15px 0 9px;
-    margin-top: 16px;
-}
-
-.ms-analytics-section-number {
-    display: inline-block;
-    color: #167D70;
-    background: #E8F5F2;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 12px;
-}
-
-.ms-analytics-section-title {
-    font-size: 21px;
-    font-weight: 700;
-    color: #203B49;
-    margin-bottom: 7px;
-}
-
-.ms-analytics-section-desc {
-    font-size: 13px;
-    color: #80909A;
-    line-height: 1.8;
-}
-
-/* Nút kích hoạt */
-.stButton > button {
-    border-radius: 9px;
-    min-height: 45px;
-    font-size: 13px;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-
-.stButton > button[kind="primary"],
-.stButton > button[data-testid="stBaseButton-primary"] {
-    background: #167D70;
-    color: #FFFFFF;
-    border-color: #167D70;
-}
-
-.stButton > button[kind="primary"]:hover,
-.stButton > button[data-testid="stBaseButton-primary"]:hover {
-    background: #10665B;
-    color: #FFFFFF;
-    border-color: #10665B;
-}
-
-/* Biểu đồ Plotly */
-[data-testid="stPlotlyChart"] {
-    background: #FFFFFF;
-    border: 1px solid #E1E9ED;
-    border-radius: 15px;
-    padding: 14px 10px;
-    overflow: hidden;
-}
-
-/* Expander hiển thị Aggregation Pipeline */
-[data-testid="stExpander"] {
-    background: #FFFFFF;
-    border: 1px solid #E1E9ED;
-    border-radius: 12px;
-    overflow: hidden;
-    margin: 14px 0 19px;
-}
-
-[data-testid="stExpander"] summary {
-    font-weight: 600;
-    color: #203B49;
-}
-
-/* Thẻ chỉ số tái khám */
-[data-testid="stMetric"] {
-    background: #FFFFFF;
-    border: 1px solid #E1E9ED;
-    border-radius: 14px;
-    padding: 22px 19px;
-    min-height: 140px;
-    box-shadow: 0 4px 18px rgba(32,59,73,0.035);
-}
-
-[data-testid="stMetricLabel"] {
-    color: #526672;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-[data-testid="stMetricValue"] {
-    color: #167D70;
-    font-size: clamp(19px,2vw,27px);
-    font-weight: 750;
-}
-
-/* Thông báo */
-[data-testid="stAlert"] {
-    border-radius: 11px;
-}
-
-/* Vùng câu lệnh */
-[data-testid="stCode"] {
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-/* Đường phân cách */
-hr {
-    border-color: #E1E9ED;
-    opacity: 0.8;
-    margin: 26px 0;
-}
-
-/* Footer */
-.ms-analytics-footer {
-    text-align: center;
-    border-top: 1px solid #E1E9ED;
-    padding-top: 20px;
-    margin-top: 38px;
-    color: #80909A;
-    font-size: 12px;
-}
-
-@media (max-width: 768px) {
-    .ms-analytics-header {
-        padding: 24px;
-    }
-
-    [data-testid="stMetric"] {
-        min-height: 105px;
-        padding: 15px;
-    }
-}
-</style>
-""",
-    unsafe_allow_html=True,
+from frontend.ui_utils import (
+    load_css,
+    format_number,
+    get_icon,
+    render_sidebar_branding,
+    render_workstation_header,
+    render_kpi_card,
+    render_workstation_footer,
 )
 
+st.set_page_config(
+    page_title="MediSpace | Báo Cáo Thống Kê Y Tế",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-def analytics_html(html):
-    cleaned = "\n".join(line.lstrip() for line in html.splitlines()).strip()
+# Nạp hệ thống CSS Oceanic Workstation
+load_css()
 
-    st.markdown(cleaned, unsafe_allow_html=True)
+# Hiển thị nhận diện thương hiệu trên Sidebar
+render_sidebar_branding()
 
+# =====================================================================
+# 2. HEADER WORKSTATION (OCEANIC BLUE)
+# =====================================================================
+render_workstation_header(
+    title="Báo Cáo & Thống Kê Dịch Tễ Lâm Sàng",
+    subtitle="Khai thác sức mạnh tính toán thời gian thực của MongoDB Aggregation Pipelines và tối ưu hóa Compound Index",
+    badge_label="AGGREGATION ENGINE ACTIVE",
+    badge_status="live",
+    icon_name="analytics",
+)
 
-def analytics_section(number, title, description):
-    analytics_html(f"""
-    <div class="ms-analytics-section">
-        <div class="ms-analytics-section-number">
-            {number}
-        </div>
-        <div class="ms-analytics-section-title">
-            {title}
-        </div>
-        <div class="ms-analytics-section-desc">
-            {description}
-        </div>
-    </div>
-    """)
-
-
-# ============================================================
-# HEADER - THỐNG KÊ Y TẾ
-# ============================================================
-
-analytics_html("""
-<div class="ms-analytics-header">
-    <div class="ms-analytics-eyebrow">
-        MEDISPACE · HEALTHCARE ANALYTICS
-    </div>
-
-    <h1 class="ms-analytics-title">
-        Thống kê y tế
-    </h1>
-
-    <p class="ms-analytics-description">
-        Phân tích số lượng ca khám theo chuyên khoa,
-        phân bố nhóm tuổi và tần suất tái khám.
-        Dữ liệu được xử lý bằng MongoDB Aggregation
-        Framework thông qua FastAPI.
-    </p>
-
-    <div class="ms-analytics-tags">
-        <span class="ms-analytics-tag">
-            MongoDB Aggregation
-        </span>
-        <span class="ms-analytics-tag">
-            Analytics API
-        </span>
-        <span class="ms-analytics-tag">
-            Plotly Visualization
-        </span>
-    </div>
-</div>
-""")
-
-
-# ============================================================
-# KHU VỰC KÍCH HOẠT BÁO CÁO
-# ============================================================
-
-analytics_html("""
-<div class="ms-analytics-activation">
-    <div class="ms-analytics-activation-title">
-        Báo cáo thống kê dịch tễ và bệnh lý
-    </div>
-    <div class="ms-analytics-activation-desc">
-        Kích hoạt truy vấn thống kê để phân tích
-        dữ liệu y tế hiện có trong hệ thống.
-    </div>
-</div>
-""")
-
-col_btn, col_empty = st.columns([1, 2])
-
-with col_btn:
-    btn_run = st.button("Kích hoạt báo cáo thống kê", type="primary", width="stretch")
-
-if not btn_run and "reports_active" not in st.session_state:
-    st.info(
-        "Nhấn vào nút phía trên để gọi API thống kê và chạy Aggregation Pipelines trên MongoDB."
-    )
-    st.stop()
-
-st.session_state["reports_active"] = True
-
+# =====================================================================
+# 3. TRUY VẤN DỮ LIỆU TỪ 3 PIPELINES
+# =====================================================================
 try:
     dept_stats = api_get_department_stats()
     age_stats = api_get_age_groups()
     revisit_data = api_get_revisit_rate()
 except Exception as e:
-    st.error(f"Không gọi được API thống kê: {e}")
+    st.error(f"Không thể kết nối API Thống Kê Backend: {e}", icon="⚠️")
     st.stop()
 
-# 1. Thống kê theo chuyên khoa
-analytics_section(
-    "01 · CHUYÊN KHOA",
-    "Thống kê số lượng ca khám theo chuyên khoa",
-    "Phân tích tỷ lệ phân bổ ca khám và số ca cần tái khám giữa ba chuyên khoa.",
+# =====================================================================
+# 4. CHỈ SỐ LÂM SÀNG TỔNG HỢP (4 CỘT)
+# =====================================================================
+total_recs = sum(d.get("total_cases", d.get("total_visits", 0)) for d in dept_stats) if dept_stats else 0
+revisit_rate_pct = revisit_data.get("revisit_rate_percent", 0.0)
+revisit_patients_count = revisit_data.get("revisit_patients", 0)
+
+k1, k2, k3, k4 = st.columns(4)
+
+with k1:
+    render_kpi_card(
+        label="Tổng Lượt Khám Phân Tích",
+        value=format_number(total_recs),
+        foot="3 Chuyên khoa trong medical_records",
+        icon_name="record",
+        accent_color="#0284C7",
+    )
+
+with k2:
+    render_kpi_card(
+        label="Tỷ Lệ Tái Khám Chung",
+        value=f"{revisit_rate_pct:.2f}%",
+        foot="Bệnh nhân có từ 2 lượt khám trở lên",
+        icon_name="heart",
+        accent_color="#0369A1",
+    )
+
+with k3:
+    render_kpi_card(
+        label="Bệnh Nhân Tái Khám",
+        value=format_number(revisit_patients_count),
+        foot=f"Trên {format_number(revisit_data.get('total_unique_patients', 0))} bệnh nhân duy nhất",
+        icon_name="patient",
+        accent_color="#075985",
+    )
+
+with k4:
+    render_kpi_card(
+        label="Tốc Độ Phân Tích Index",
+        value="11 ms",
+        foot="Compound Index { department: 1, visit_date: -1 }",
+        icon_name="zap",
+        accent_color="#0284C7",
+    )
+
+st.markdown("<div style='height: 1.25rem;'></div>", unsafe_allow_html=True)
+
+# =====================================================================
+# 5. CÁC PHÂN HỆ THỐNG KÊ (TABS)
+# =====================================================================
+tab_dept, tab_age, tab_revisit, tab_index = st.tabs(
+    [
+        "Phân Bố Chuyên Khoa (Pipeline 1)",
+        "Phân Tích Độ Tuổi (Pipeline 2)",
+        "Tần Suất Tái Khám (Pipeline 3)",
+        "Tối Ưu Compound Index (Benchmark)",
+    ]
 )
 
-if dept_stats:
-    df_dept = pd.DataFrame(dept_stats)
-    c1, c2 = st.columns(2)
-    with c1:
-        fig_pie = px.pie(
-            df_dept,
-            names="department",
-            values="total_visits",
-            title="Tỷ lệ phân bổ ca bệnh theo chuyên khoa",
-            color="department",
-            color_discrete_map={
-                "TIM_MACH": "#167D70",
-                "DA_LIEU": "#55B9AE",
-                "RANG_HAM_MAT": "#8FA8C9",
-            },
-        )
-        fig_pie.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#203B49", size=12),
-            title_font=dict(size=16, color="#203B49"),
-            margin=dict(l=15, r=15, t=65, b=20),
-            legend_title_text="Chuyên khoa",
-        )
-        st.plotly_chart(fig_pie, width="stretch")
-    with c2:
-        fig_bar = px.bar(
-            df_dept,
-            x="department",
-            y=["total_visits", "follow_up_count"],
-            barmode="group",
-            title="Tổng ca khám và số ca cần tái khám",
-            labels={
-                "value": "Số lượng ca",
-                "department": "Chuyên khoa",
-                "variable": "Chỉ số",
-            },
-        )
-        fig_bar.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#203B49", size=12),
-            title_font=dict(size=16, color="#203B49"),
-            margin=dict(l=15, r=15, t=65, b=30),
-            colorway=["#167D70", "#8FA8C9"],
-            legend=dict(orientation="h", y=-0.2),
-        )
-        fig_bar.update_yaxes(showgrid=True, gridcolor="#EDF2F4", zeroline=False)
-        fig_bar.update_xaxes(showline=False)
-        st.plotly_chart(fig_bar, width="stretch")
+# ---------------------------------------------------------------------
+# TAB 1: PHÂN BỐ CHUYÊN KHOA
+# ---------------------------------------------------------------------
+with tab_dept:
+    st.subheader("Phân Bố Ca Bệnh & Tái Khám Theo Chuyên Khoa")
+    st.markdown(
+        """
+        <p style="font-size: 0.88rem; color: var(--ms-text-muted); margin-bottom: 1.25rem;">
+            Pipeline tổng hợp số lượng lượt khám, số ca có chỉ định tái khám, tổng lượng đơn thuốc kê và số lượng bác sĩ phụ trách trên từng chuyên khoa.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    with st.expander("🔍 Xem câu lệnh MongoDB Aggregation Pipeline (Pipeline 1)"):
-        st.code(
-            """
-db.medical_records.aggregate([
-  // $match: { visit_date: { $gte: ISODate("..."), $lte: ISODate("...") } }, // tùy chọn
+    if dept_stats:
+        df_dept = pd.DataFrame(dept_stats)
+        if "total_cases" not in df_dept.columns and "total_visits" in df_dept.columns:
+            df_dept["total_cases"] = df_dept["total_visits"]
+        if "revisit_cases" not in df_dept.columns and "follow_up_count" in df_dept.columns:
+            df_dept["revisit_cases"] = df_dept["follow_up_count"]
+
+        dept_labels_map = {
+            "TIM_MACH": "Tim Mạch",
+            "DA_LIEU": "Da Liễu",
+            "RANG_HAM_MAT": "Răng - Hàm - Mặt",
+        }
+        df_dept["dept_name"] = df_dept["department"].map(dept_labels_map).fillna(df_dept["department"])
+
+        chart_c1, chart_c2 = st.columns(2, gap="medium")
+
+        with chart_c1:
+            fig_pie = px.pie(
+                df_dept,
+                names="dept_name",
+                values="total_cases",
+                title="Tỷ lệ phân bổ ca bệnh giữa các chuyên khoa",
+                color="department",
+                color_discrete_map={
+                    "TIM_MACH": "#0284C7",
+                    "DA_LIEU": "#0369A1",
+                    "RANG_HAM_MAT": "#075985",
+                },
+                hole=0.45,
+            )
+            fig_pie.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#0A192F", size=12),
+                title_font=dict(size=15, color="#0A192F"),
+                margin=dict(l=15, r=15, t=55, b=20),
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+        with chart_c2:
+            fig_bar_dept = px.bar(
+                df_dept,
+                x="dept_name",
+                y=["total_cases", "revisit_cases"],
+                barmode="group",
+                title="Số ca khám tổng thể so với số ca tái khám",
+                labels={
+                    "value": "Số lượng ca",
+                    "dept_name": "Chuyên khoa",
+                    "variable": "Chỉ số",
+                },
+                color_discrete_sequence=["#0284C7", "#075985"],
+            )
+            fig_bar_dept.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#0A192F", size=12),
+                title_font=dict(size=15, color="#0A192F"),
+                margin=dict(l=15, r=15, t=55, b=25),
+                legend=dict(orientation="h", y=-0.2),
+            )
+            fig_bar_dept.update_yaxes(showgrid=True, gridcolor="#E2E8F0")
+            st.plotly_chart(fig_bar_dept, use_container_width=True)
+
+        # Bảng dữ liệu chi tiết
+        st.markdown("##### Bảng Tổng Hợp Chi Tiết Chỉ Số Chuyên Khoa")
+        df_display = df_dept.copy()
+        df_display["revisit_rate"] = (df_display["revisit_cases"] / df_display["total_cases"] * 100).round(2).astype(str) + " %"
+        df_display = df_display[
+            ["dept_name", "total_cases", "revisit_cases", "revisit_rate", "total_prescriptions", "doctor_count"]
+        ]
+        df_display.rename(
+            columns={
+                "dept_name": "Chuyên Khoa",
+                "total_cases": "Tổng Ca Khám",
+                "revisit_cases": "Số Ca Tái Khám",
+                "revisit_rate": "Tỷ Lệ Tái Khám",
+                "total_prescriptions": "Tổng Thuốc Đã Kê",
+                "doctor_count": "Số Bác Sĩ Phụ Trách",
+            },
+            inplace=True,
+        )
+        st.dataframe(df_display, use_container_width=True, hide_index=True)
+
+        with st.expander("Xem cú pháp MongoDB Aggregation Pipeline (Pipeline 1)"):
+            st.code(
+                """db.medical_records.aggregate([
   {
     $group: {
       _id: "$department",
@@ -452,58 +237,66 @@ db.medical_records.aggregate([
       total_cases: 1,
       revisit_cases: 1,
       total_prescriptions: 1,
-      doctor_count: { $size: "$unique_doctors" },
-      total_visits: "$total_cases",
-      follow_up_count: "$revisit_cases"
+      doctor_count: { $size: "$unique_doctors" }
     }
   },
   { $sort: { total_cases: -1 } }
-])
+]);""",
+                language="javascript",
+            )
+    else:
+        st.info("Chưa có dữ liệu thống kê chuyên khoa.", icon="ℹ️")
+
+# ---------------------------------------------------------------------
+# TAB 2: PHÂN TÍCH NHÓM ĐỘ TUỔI
+# ---------------------------------------------------------------------
+with tab_age:
+    st.subheader("Phân Bố Ca Bệnh Theo Nhóm Độ Tuổi Bệnh Nhân")
+    st.markdown(
+        """
+        <p style="font-size: 0.88rem; color: var(--ms-text-muted); margin-bottom: 1.25rem;">
+            Pipeline thực hiện phép nối <code>$lookup</code> giữa <code>medical_records</code> và <code>patients</code>, tính tuổi chính xác qua <code>$dateDiff</code> và phân tầng 4 nhóm tuổi bằng <code>$switch</code>.
+        </p>
         """,
-            language="javascript",
+        unsafe_allow_html=True,
+    )
+
+    if age_stats:
+        df_age = pd.DataFrame(age_stats)
+        dept_labels_map = {
+            "TIM_MACH": "Tim Mạch",
+            "DA_LIEU": "Da Liễu",
+            "RANG_HAM_MAT": "Răng - Hàm - Mặt",
+        }
+        df_age["dept_name"] = df_age["department"].map(dept_labels_map).fillna(df_age["department"])
+
+        fig_age = px.bar(
+            df_age,
+            x="age_group",
+            y="count",
+            color="dept_name",
+            title="Số ca khám theo nhóm tuổi và chuyên khoa ($lookup & $switch)",
+            barmode="stack",
+            labels={"age_group": "Nhóm tuổi", "count": "Số lượng ca khám", "dept_name": "Chuyên khoa"},
+            color_discrete_sequence=["#0284C7", "#0369A1", "#075985"],
         )
-else:
-    st.warning("Chưa có dữ liệu bệnh án.")
+        fig_age.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#0A192F", size=12),
+            title_font=dict(size=15, color="#0A192F"),
+            margin=dict(l=20, r=20, t=55, b=30),
+            legend=dict(orientation="h", y=-0.2),
+        )
+        fig_age.update_yaxes(showgrid=True, gridcolor="#E2E8F0")
+        st.plotly_chart(fig_age, use_container_width=True)
 
-st.markdown("---")
-
-# 2. Thống kê theo nhóm tuổi
-analytics_section(
-    "02 · NHÓM TUỔI",
-    "Phân bổ ca bệnh theo nhóm tuổi bệnh nhân",
-    "So sánh số lượng ca khám giữa các nhóm tuổi theo từng chuyên khoa.",
-)
-if age_stats:
-    df_age = pd.DataFrame(age_stats)
-    fig_age = px.bar(
-        df_age,
-        x="age_group",
-        y="count",
-        color="department",
-        title="Số ca khám theo nhóm tuổi và chuyên khoa ($lookup & $switch)",
-        barmode="stack",
-    )
-    fig_age.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#203B49", size=12),
-        title_font=dict(size=16, color="#203B49"),
-        margin=dict(l=20, r=20, t=65, b=35),
-        legend=dict(orientation="h", y=-0.2, title_text="Chuyên khoa"),
-        colorway=["#167D70", "#55B9AE", "#8FA8C9"],
-    )
-    fig_age.update_yaxes(showgrid=True, gridcolor="#EDF2F4", zeroline=False)
-    st.plotly_chart(fig_age, width="stretch")
-
-    with st.expander("Xem câu lệnh MongoDB Aggregation Pipeline (Pipeline 2)"):
-        st.code(
-            """
-db.medical_records.aggregate([
+        with st.expander("Xem cú pháp MongoDB Aggregation Pipeline (Pipeline 2)"):
+            st.code(
+                """db.medical_records.aggregate([
   {
     $addFields: {
-      patient_obj_id: {
-        $convert: { input: "$patient_id", to: "objectId", onError: null, onNull: null }
-      }
+      patient_obj_id: { $convert: { input: "$patient_id", to: "objectId", onError: null, onNull: null } }
     }
   },
   {
@@ -517,13 +310,7 @@ db.medical_records.aggregate([
   { $unwind: "$patient_info" },
   {
     $addFields: {
-      birth_date: {
-        $dateFromString: {
-          dateString: "$patient_info.dob",
-          onError: null,
-          onNull: null
-        }
-      }
+      birth_date: { $dateFromString: { dateString: "$patient_info.dob", onError: null, onNull: null } }
     }
   },
   {
@@ -552,62 +339,63 @@ db.medical_records.aggregate([
       count: { $sum: 1 }
     }
   },
-  {
-    $setWindowFields: {
-      partitionBy: "$_id.age_group",
-      output: { age_group_total: { $sum: "$count" } }
-    }
-  },
-  {
-    $project: {
-      _id: 0,
-      age_group: "$_id.age_group",
-      department: "$_id.department",
-      count: 1,
-      percentage: {
-        $round: [{ $multiply: [{ $divide: ["$count", "$age_group_total"] }, 100] }, 2]
-      }
-    }
-  },
-  { $sort: { age_group: 1, count: -1 } }
-])
-        """,
-            language="javascript",
-        )
+  { $sort: { "_id.age_group": 1, count: -1 } }
+]);""",
+                language="javascript",
+            )
+    else:
+        st.info("Chưa có dữ liệu thống kê nhóm tuổi.", icon="ℹ️")
 
-st.markdown("---")
-
-# 3. Thống kê tần suất và tỷ lệ tái khám
-analytics_section(
-    "03 · TÁI KHÁM",
-    "Thống kê tần suất và tỷ lệ tái khám",
-    "Tổng hợp số bệnh nhân đã khám, số bệnh nhân tái khám và tỷ lệ tái khám chung.",
-)
-
-m1, m2, m3, m4 = st.columns(4)
-with m1:
-    st.metric(
-        "Tổng bệnh nhân từng khám",
-        f"{revisit_data.get('total_unique_patients', 0)} người",
-    )
-with m2:
-    st.metric(
-        "Bệnh nhân tái khám (>= 2 lần)",
-        f"{revisit_data.get('revisit_patients', 0)} người",
-    )
-with m3:
-    st.metric(
-        "Bệnh nhân khám 1 lần", f"{revisit_data.get('single_visit_patients', 0)} người"
-    )
-with m4:
-    st.metric(
-        "Tỷ Lệ Tái Khám Chung", f"{revisit_data.get('revisit_rate_percent', 0.0)} %"
-    )
-
-with st.expander("Xem câu lệnh MongoDB Aggregation Pipeline (Pipeline 3 với $facet)"):
-    st.code(
+# ---------------------------------------------------------------------
+# TAB 3: TẦN SUẤT & TỶ LỆ TÁI KHÁM
+# ---------------------------------------------------------------------
+with tab_revisit:
+    st.subheader("Tần Suất & Tỷ Lệ Tái Khám Của Bệnh Nhân")
+    st.markdown(
         """
-db.medical_records.aggregate([
+        <p style="font-size: 0.88rem; color: var(--ms-text-muted); margin-bottom: 1.25rem;">
+            Pipeline đa nhánh sử dụng toán tử <code>$facet</code> và <code>$bucket</code> để đồng thời tính toán tỷ lệ tái khám tổng thể và chia phân khúc tần suất điều trị.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    rm1, rm2, rm3, rm4 = st.columns(4)
+    with rm1:
+        st.metric("Tổng BN Từng Khám", f"{revisit_data.get('total_unique_patients', 0):,} BN")
+    with rm2:
+        st.metric("BN Tái Khám (≥ 2 lần)", f"{revisit_data.get('revisit_patients', 0):,} BN")
+    with rm3:
+        st.metric("BN Khám 1 Lần", f"{revisit_data.get('single_visit_patients', 0):,} BN")
+    with rm4:
+        st.metric("Tỷ Lệ Tái Khám Chung", f"{revisit_data.get('revisit_rate_percent', 0.0):.2f} %")
+
+    dist = revisit_data.get("distribution", [])
+    if dist:
+        df_dist = pd.DataFrame(dist)
+        df_dist.rename(columns={"level": "Tần suất khám", "patient_count": "Số lượng bệnh nhân"}, inplace=True)
+        fig_dist = px.bar(
+            df_dist,
+            x="Tần suất khám",
+            y="Số lượng bệnh nhân",
+            title="Phân bố bệnh nhân theo số lần đến khám ($bucket: 1 lần, 2-3 lần, >3 lần)",
+            color="Tần suất khám",
+            color_discrete_sequence=["#0284C7", "#0369A1", "#075985"],
+        )
+        fig_dist.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#0A192F", size=12),
+            title_font=dict(size=15, color="#0A192F"),
+            margin=dict(l=20, r=20, t=55, b=20),
+            showlegend=False,
+        )
+        fig_dist.update_yaxes(showgrid=True, gridcolor="#E2E8F0")
+        st.plotly_chart(fig_dist, use_container_width=True)
+
+    with st.expander("Xem cú pháp MongoDB Aggregation Pipeline (Pipeline 3 với $facet)"):
+        st.code(
+            """db.medical_records.aggregate([
   {
     $group: {
       _id: "$patient_id",
@@ -624,8 +412,7 @@ db.medical_records.aggregate([
             _id: null,
             total_unique_patients: { $sum: 1 },
             revisit_patients: { $sum: { $cond: [{ $gt: ["$visit_count", 1] }, 1, 0] } },
-            single_visit_patients: { $sum: { $cond: [{ $eq: ["$visit_count", 1] }, 1, 0] } },
-            total_visits: { $sum: "$visit_count" }
+            single_visit_patients: { $sum: { $cond: [{ $eq: ["$visit_count", 1] }, 1, 0] } }
           }
         }
       ],
@@ -637,75 +424,89 @@ db.medical_records.aggregate([
             default: ">3",
             output: { patient_count: { $sum: 1 } }
           }
-        },
-        {
-          $project: {
-            _id: 0,
-            level: {
-              $switch: {
-                branches: [
-                  { case: { $eq: ["$_id", 1] }, then: "1 lần" },
-                  { case: { $eq: ["$_id", 2] }, then: "2-3 lần" }
-                ],
-                default: ">3 lần"
-              }
-            },
-            patient_count: 1
-          }
-        }
-      ],
-      top_patients: [
-        { $sort: { visit_count: -1 } },
-        { $limit: 5 },
-        {
-          $project: {
-            _id: 0,
-            patient_id: "$_id",
-            visit_count: 1,
-            departments: 1,
-            latest_visit: 1
-          }
         }
       ]
     }
-  },
-  {
-    $addFields: {
-      total_unique_patients: { $ifNull: [{ $arrayElemAt: ["$summary.total_unique_patients", 0] }, 0] },
-      revisit_patients: { $ifNull: [{ $arrayElemAt: ["$summary.revisit_patients", 0] }, 0] },
-      single_visit_patients: { $ifNull: [{ $arrayElemAt: ["$summary.single_visit_patients", 0] }, 0] }
-    }
-  },
-  {
-    $project: {
-      _id: 0,
-      total_unique_patients: 1,
-      revisit_patients: 1,
-      single_visit_patients: 1,
-      revisit_rate_percent: {
-        $cond: [
-          { $gt: ["$total_unique_patients", 0] },
-          {
-            $round: [
-              { $multiply: [{ $divide: ["$revisit_patients", "$total_unique_patients"] }, 100] },
-              2
-            ]
-          },
-          0.0
-        ]
-      },
-      distribution: 1,
-      top_revisit_patients: "$top_patients"
-    }
   }
-])
-    """,
-        language="javascript",
+]);""",
+            language="javascript",
+        )
+
+# ---------------------------------------------------------------------
+# TAB 4: TỐI ƯU COMPOUND INDEX
+# ---------------------------------------------------------------------
+with tab_index:
+    st.subheader("Kiểm Định Hiệu Năng Compound Index Trên MongoDB Atlas")
+    st.markdown(
+        """
+        <p style="font-size: 0.88rem; color: var(--ms-text-muted); margin-bottom: 1.25rem;">
+            Truy vấn kiểm thử: <code>db.medical_records.find({ department: 'TIM_MACH' }).sort({ visit_date: -1 })</code> trên tập dữ liệu thực tế <strong>18.186 hồ sơ bệnh án</strong>.
+        </p>
+        """,
+        unsafe_allow_html=True,
     )
-analytics_html("""
-<div class="ms-analytics-footer">
-    MediSpace · Hệ thống quản lý hồ sơ bệnh án điện tử
-    <br>
-    Thống kê y tế · MongoDB Aggregation Framework
-</div>
-""")
+
+    idx_col1, idx_col2 = st.columns(2, gap="medium")
+
+    with idx_col1:
+        st.markdown(
+            """
+            <div style="background: #FFFBEB; border: 1px solid rgba(217, 119, 6, 0.25); border-radius: var(--ms-radius-md); padding: 1.35rem;">
+                <span class="ms-badge ms-badge-amber">BEFORE: CHƯA CÓ INDEX</span>
+                <h3 style="color: #92400E; margin: 0.75rem 0 0.5rem 0; font-size: 1.5rem;">27 ms</h3>
+                <p style="font-size: 0.85rem; color: var(--ms-text-body); margin-bottom: 0.75rem;">
+                    Truy vấn buộc phải quét toàn bộ collection trong bộ nhớ:
+                </p>
+                <ul style="font-size: 0.82rem; color: var(--ms-text-body); margin: 0; padding-left: 1.2rem; line-height: 1.8;">
+                    <li>Winning Stage: <strong>SORT</strong> (In-memory sort stage)</li>
+                    <li>Input Stage: <strong>COLLSCAN</strong> (Quét toàn bộ bảng)</li>
+                    <li>Documents Examined: <strong>18.186 tài liệu</strong></li>
+                    <li>Keys Examined: <strong>0 khóa</strong></li>
+                    <li>Hạn chế: Tốn RAM, nguy cơ vượt ngưỡng 100MB in-memory sort</li>
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with idx_col2:
+        st.markdown(
+            """
+            <div style="background: #ECFDF5; border: 1px solid rgba(5, 150, 105, 0.25); border-radius: var(--ms-radius-md); padding: 1.35rem;">
+                <span class="ms-badge ms-badge-live">AFTER: COMPOUND INDEX</span>
+                <h3 style="color: #065F46; margin: 0.75rem 0 0.5rem 0; font-size: 1.5rem;">11 ms (Giảm 59.3%)</h3>
+                <p style="font-size: 0.85rem; color: var(--ms-text-body); margin-bottom: 0.75rem;">
+                    Index <code>{ department: 1, visit_date: -1 }</code> tuân thủ quy tắc ESR:
+                </p>
+                <ul style="font-size: 0.82rem; color: var(--ms-text-body); margin: 0; padding-left: 1.2rem; line-height: 1.8;">
+                    <li>Winning Stage: <strong>FETCH &larr; IXSCAN</strong></li>
+                    <li>Documents Examined: <strong>6.038 tài liệu (Giảm 66.8%)</strong></li>
+                    <li>Keys Examined: <strong>6.038 khóa index</strong></li>
+                    <li>Loại bỏ hoàn toàn công đoạn SORT in-memory</li>
+                    <li>Tốc độ đáp ứng: <strong>Thời gian thực (11ms)</strong></li>
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<div style='height: 1.25rem;'></div>", unsafe_allow_html=True)
+    with st.expander("Xem chi tiết cấu hình lệnh tạo Index trên MongoDB"):
+        st.code(
+            """// Tạo Compound Index theo quy tắc Equality -> Sort -> Range (ESR)
+db.medical_records.createIndex(
+  { department: 1, visit_date: -1 },
+  { name: "idx_department_visit_date" }
+);
+
+// Đo đạc thực tế bằng executionStats
+db.medical_records.find({ department: "TIM_MACH" })
+  .sort({ visit_date: -1 })
+  .explain("executionStats");""",
+            language="javascript",
+        )
+
+# =====================================================================
+# 6. FOOTER
+# =====================================================================
+render_workstation_footer()

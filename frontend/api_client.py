@@ -54,6 +54,16 @@ def api_delete_patient(patient_id: str):
         print(f"API error (delete patient): {e}")
         return 500
 
+def api_get_next_patient_code():
+    """Lấy mã bệnh nhân tự động tăng tiếp theo từ Backend."""
+    try:
+        res = requests.get(f"{API_BASE_URL}/patients/next-code", timeout=REQUEST_TIMEOUT)
+        if res.status_code == 200:
+            return res.json().get("next_code")
+    except Exception as e:
+        print(f"API error (get next patient code): {e}")
+    return None
+
 # =====================================================================
 # 2. QUẢN LÝ HỒ SƠ BỆNH ÁN ĐỘNG (MEDICAL RECORDS API)
 # =====================================================================
@@ -109,6 +119,16 @@ def api_delete_record(record_id: str):
     except Exception as e:
         print(f"API error (delete record): {e}")
         return 500
+
+def api_get_next_record_code():
+    """Lấy mã bệnh án tự động tăng tiếp theo từ Backend."""
+    try:
+        res = requests.get(f"{API_BASE_URL}/records/next-code", timeout=REQUEST_TIMEOUT)
+        if res.status_code == 200:
+            return res.json().get("next_code")
+    except Exception as e:
+        print(f"API error (get next record code): {e}")
+    return None
 
 # =====================================================================
 # 3. THỐNG KÊ Y TẾ (ANALYTICS API)

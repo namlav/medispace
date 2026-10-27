@@ -1,0 +1,146 @@
+{
+  "title": "Chọn Định Hướng Giao Diện MediSpace",
+  "question": "Vòng quay đề xuất: Clinical Triage & Dynamic Workstation Matrix. Giữ định hướng này, chọn phương án thay thế, hoặc quay lại.",
+  "options": [
+    {
+      "id": "assigned",
+      "kind": "assigned",
+      "label": "Clinical Triage & Dynamic Workstation Matrix",
+      "kicker": "THE ROLL",
+      "lineage": "Hệ thống khám & phân luồng ma trận phòng khám đa khoa hiện đại",
+      "thesis": "Bàn khám lâm sàng phân luồng ma trận 4 khối công thái học: Sinh hiệu hành chính, Khám động chuyên khoa, Lưới kê đơn nhúng và Thanh tác vụ nhanh.",
+      "palette": [
+        "#0F766E",
+        "#0284C7",
+        "#10B981",
+        "#F8FAFC"
+      ],
+      "materials": [
+        "clinical slate surfaces",
+        "high-density triage data cards",
+        "hairline metric dividers"
+      ],
+      "viewport": "Bố cục chia luồng: Cột trái cố định tóm tắt sinh hiệu/tiểu sử bệnh nhân; cột phải là bảng khám chuyên khoa động thay đổi theo phân hệ kèm lưới kê đơn thuốc nhúng thời gian thực.",
+      "risk": "Mật độ dữ liệu cao đòi hỏi phân cấp thị giác cực kỳ sắc nét để bác sĩ không bị quá tải mắt.",
+      "raised": [
+        {
+          "from": "crouwel-grid-specimen",
+          "raise": "Bố cục chia khung với đường lưới hairline chuẩn xác, căn thẳng hàng mọi trường dữ liệu lâm sàng."
+        },
+        {
+          "from": "rw-timetable-slide-rack",
+          "raise": "Nhãn mã định danh BN/BA hiển thị dạng monospace gọn gàng, trạng thái phân loại màu dứt khoát."
+        },
+        {
+          "from": "mixtape-jcard",
+          "raise": "Kiến trúc split-pane 2 khối (hành chính bên trái - lâm sàng bên phải) giúp quét mắt tức thời."
+        }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "kind": "pick",
+      "label": "Clinical Workstation Terminal (PACS Console)",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Bảng điều khiển chẩn đoán chuẩn mực phòng khám quốc tế",
+      "thesis": "Giao diện bảng điều khiển chẩn đoán chuẩn mực phòng khám quốc tế, các tab chuyên khoa phân tách rõ ràng với thẻ dữ liệu phẳng.",
+      "palette": [
+        "#167D70",
+        "#203B49",
+        "#526672",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "soft medical borders",
+        "clean segmented controls"
+      ],
+      "viewport": "Thẻ điều khiển trung tâm với thanh chuyển khoa dạng segmented tab, bảng dữ liệu phẳng chuẩn enterprise.",
+      "risk": "Quen thuộc và tương đối phổ biến ở các hệ thống phần mềm quản lý phòng khám SaaS tiêu chuẩn."
+    },
+    {
+      "id": "challenger-crouwel",
+      "kind": "challenger",
+      "catalogId": "crouwel-grid-specimen",
+      "label": "Wim Crouwel Grid Specimen",
+      "verdict": "declined",
+      "lineage": "Lưới hình học đồ họa Wim Crouwel",
+      "palette": [
+        "#ffffff",
+        "#1b2a52",
+        "#0055ff"
+      ],
+      "materials": [
+        "visible construction grid",
+        "hairline coordinates"
+      ],
+      "case": "Không phù hợp với bệnh án lâm sàng: các đường lưới hình học dày đặc gây rối mắt cho bác sĩ.",
+      "kept": "Kỷ luật căn chỉnh lưới hairline nghiêm ngặt và tỷ lệ chia cột dứt khoát."
+    },
+    {
+      "id": "challenger-timetable",
+      "kind": "challenger",
+      "catalogId": "rw-timetable-slide-rack",
+      "label": "Pocket Timetable Slide Rack",
+      "verdict": "declined",
+      "lineage": "Bảng biểu lịch trình bỏ túi 1971",
+      "palette": [
+        "#fdf6e2",
+        "#1e293b",
+        "#d97706"
+      ],
+      "materials": [
+        "tinted slide racks",
+        "monospace code columns"
+      ],
+      "case": "Hình khối góc xiên và cỡ chữ đồng nhất gây khó khăn trong việc phân cấp mức độ khẩn cấp y tế.",
+      "kept": "Trình bày mã định danh BN/BA dạng monospace và thanh trạng thái phân loại màu dứt khoát."
+    },
+    {
+      "id": "challenger-jcard",
+      "kind": "challenger",
+      "catalogId": "vernacular-ephemera-cassette-j-card",
+      "label": "Mixtape Hand-lettered J-Card",
+      "verdict": "declined",
+      "lineage": "Thẻ ghi chú bìa băng cassette gập 2 mặt",
+      "palette": [
+        "#fdfbf7",
+        "#27272a",
+        "#ef4444"
+      ],
+      "materials": [
+        "folded spine",
+        "ballpoint ruling"
+      ],
+      "case": "Nét viết tay không phù hợp với chuẩn mực y tế điện tử chính quy.",
+      "kept": "Bố cục chia 2 mặt logic (mặt trái hành chính - mặt phải lâm sàng điều trị)."
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "code",
+    "toggle": false
+  },
+  "canon": true,
+  "canonCard": {
+    "kind": "canon",
+    "label": "The Category Standard (Tiêu chuẩn SaaS Y tế truyền thống)",
+    "thesis": "Bố cục bảng điều khiển y tế doanh nghiệp tiêu chuẩn, thẻ bo tròn đơn giản, màu xanh y tế quen thuộc.",
+    "palette": [
+      "#FFFFFF",
+      "#0F172A",
+      "#2563EB"
+    ],
+    "materials": [
+      "clean rounded cards",
+      "standard bootstrap/tailwind widgets"
+    ],
+    "viewport": "Bố cục thẻ dọc đơn giản, bảng dữ liệu mặc định, không phân luồng ma trận.",
+    "risk": "Thiếu cá tính riêng biệt và không tối ưu triệt để cho thao tác khám bệnh đa chuyên khoa tốc độ cao."
+  },
+  "steer": true
+}

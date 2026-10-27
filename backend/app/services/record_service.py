@@ -29,6 +29,21 @@ def _regex(value: str) -> dict:
 
 class RecordService:
     @staticmethod
+    def get_next_record_code() -> str:
+        """Tự động sinh mã bệnh án tiếp theo (max existing + 1)."""
+        col = get_records_collection()
+        total = col.count_documents({})
+        max_num = total
+        for doc in col.find({}, {"record_code": 1}).sort("_id", -1).limit(100):
+            code = str(doc.get("record_code", ""))
+            nums = re.findall(r"\d+", code)
+            if nums:
+                max_num = max(max_num, int(nums[-1]))
+        next_num = max_num + 1
+        code_str = f"{next_num:05d}" if next_num > 9999 else f"{next_num:04d}"
+        return f"BA-2026-{code_str}"
+
+    @staticmethod
     def create_record(data: MedicalRecordCreate) -> dict:
         col = get_records_collection()
         doc = data.model_dump()
