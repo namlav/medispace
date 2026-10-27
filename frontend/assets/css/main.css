@@ -1,0 +1,157 @@
+/* =========================================
+   MediSpace - Global UI
+   ========================================= */
+
+:root {
+    --ms-primary: #167d70;
+    --ms-primary-dark: #10675d;
+    --ms-primary-light: #e8f5f2;
+
+    --ms-heading: #203b49;
+    --ms-text: #526672;
+    --ms-muted: #7b8c95;
+
+    --ms-background: #f5f8fa;
+    --ms-surface: #ffffff;
+    --ms-border: #e1e9ed;
+
+    --ms-radius: 12px;
+}
+
+/* Nền ứng dụng */
+.stApp {
+    background: var(--ms-background);
+    color: var(--ms-text);
+}
+
+/* Ẩn nền đục mặc định ở vùng header */
+[data-testid="stHeader"] {
+    background: transparent;
+}
+
+/* Căn lề nội dung */
+.block-container {
+    max-width: 1440px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+/* Typography */
+h1,
+h2,
+h3 {
+    color: var(--ms-heading);
+    letter-spacing: -0.025em;
+}
+
+p,
+li {
+    color: var(--ms-text);
+    line-height: 1.7;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: #ffffff;
+    border-right: 1px solid var(--ms-border);
+}
+
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
+    color: var(--ms-heading);
+}
+
+/* Thẻ thống kê */
+[data-testid="stMetric"] {
+    background: var(--ms-surface);
+    border: 1px solid var(--ms-border);
+    border-radius: var(--ms-radius);
+    padding: 1.15rem 1.25rem;
+    box-shadow: 0 3px 12px rgba(32, 59, 73, 0.035);
+}
+
+[data-testid="stMetricLabel"] {
+    color: var(--ms-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+[data-testid="stMetricValue"] {
+    color: var(--ms-heading);
+    font-weight: 700;
+}
+
+/* Container có viền dùng làm thẻ nội dung */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    border-color: var(--ms-border);
+    border-radius: var(--ms-radius);
+    background: var(--ms-surface);
+}
+
+/* Nút bấm */
+.stButton > button,
+.stDownloadButton > button {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s ease,
+                border-color 0.2s ease;
+}
+
+/* Nút primary */
+.stButton > button[kind="primary"],
+.stFormSubmitButton > button[kind="primary"] {
+    background: var(--ms-primary);
+    border-color: var(--ms-primary);
+    color: #ffffff;
+}
+
+.stButton > button[kind="primary"]:hover,
+.stFormSubmitButton > button[kind="primary"]:hover {
+    background: var(--ms-primary-dark);
+    border-color: var(--ms-primary-dark);
+}
+
+/* Trường nhập liệu */
+[data-baseweb="input"] > div,
+[data-baseweb="select"] > div,
+[data-baseweb="textarea"] {
+    border-radius: 8px;
+}
+
+/* Nhãn trường nhập */
+[data-testid="stWidgetLabel"] {
+    color: var(--ms-heading);
+    font-weight: 500;
+}
+
+/* Tab */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 1.2rem;
+    border-bottom: 1px solid var(--ms-border);
+}
+
+.stTabs [data-baseweb="tab"] {
+    color: var(--ms-muted);
+    font-weight: 500;
+}
+
+.stTabs [aria-selected="true"] {
+    color: var(--ms-primary);
+}
+
+/* Đường phân cách */
+hr {
+    border-color: var(--ms-border);
+}
+
+/* Màn hình nhỏ */
+@media (max-width: 768px) {
+    .block-container {
+        padding: 1rem 1rem 2rem;
+    }
+
+    [data-testid="stMetric"] {
+        padding: 0.9rem;
+    }
+}
