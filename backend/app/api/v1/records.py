@@ -59,6 +59,11 @@ def get_medical_records(
         "items": items
     }, custom_encoder={ObjectId: str})
 
+@router.get("/next-code", response_model=dict)
+def get_next_record_code():
+    code = RecordService.get_next_record_code()
+    return {"next_code": code}
+
 @router.get("/{record_id}", response_model=MedicalRecordOut)
 def get_medical_record(record_id: str):
     record = RecordService.get_record_by_id(record_id)

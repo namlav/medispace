@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-27T21:33:30+07:00",
+  "title": "Design System: MediSpace Oceanic Workstation",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Ocean Blue Primary",
+        "canonical": "#0284C7",
+        "tonalRamp": ["#0C4A6E", "#075985", "#0369A1", "#0284C7", "#38BDF8", "#7DD3FC", "#BAE6FD", "#F0F7FF"]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Ocean Cobalt",
+        "canonical": "#075985",
+        "tonalRamp": ["#082F49", "#0C4A6E", "#075985", "#0369A1", "#0284C7", "#38BDF8", "#7DD3FC", "#E0F2FE"]
+      },
+      "accent-cyan": {
+        "role": "accent",
+        "displayName": "Marine Cyan Accent",
+        "canonical": "#38BDF8",
+        "tonalRamp": ["#083344", "#155E75", "#0E7490", "#06B6D4", "#22D3EE", "#38BDF8", "#67E8F9", "#CFFAFE"]
+      },
+      "neutral-sidebar": {
+        "role": "neutral",
+        "displayName": "Abyssal Navy",
+        "canonical": "#0A192F",
+        "tonalRamp": ["#020617", "#071626", "#0A192F", "#0F2744", "#1E3A5F", "#334E68", "#627D98", "#D8E2EC"]
+      },
+      "triage-normal": {
+        "role": "semantic",
+        "displayName": "Triage Green Normal",
+        "canonical": "#059669",
+        "tonalRamp": ["#064E3B", "#065F46", "#047857", "#059669", "#10B981", "#34D399", "#6EE7B7", "#ECFDF5"]
+      },
+      "triage-warning": {
+        "role": "semantic",
+        "displayName": "Triage Amber Warning",
+        "canonical": "#D97706",
+        "tonalRamp": ["#78350F", "#92400E", "#B45309", "#D97706", "#F59E0B", "#FBBF24", "#FDE68A", "#FFFBEB"]
+      },
+      "triage-danger": {
+        "role": "semantic",
+        "displayName": "Triage Red Danger",
+        "canonical": "#DC2626",
+        "tonalRamp": ["#7F1D1D", "#991B1B", "#B91C1C", "#DC2626", "#EF4444", "#F87171", "#FCA5A5", "#FEF2F2"]
+      },
+      "neutral-surface": {
+        "role": "neutral",
+        "displayName": "Pure Surface",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["#0A192F", "#1E293B", "#334155", "#627D98", "#94A3B8", "#CBD5E1", "#D8E2EC", "#FFFFFF"]
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Tiêu đề màn hình và tên phân hệ chính" },
+      "title": { "displayName": "Title", "purpose": "Tiêu đề các khối chức năng và thẻ lâm sàng" },
+      "body": { "displayName": "Body", "purpose": "Văn bản nội dung, triệu chứng và chẩn đoán" },
+      "label": { "displayName": "Label", "purpose": "Nhãn trường nhập liệu và tiêu đề bảng dữ liệu" },
+      "code": { "displayName": "Code/Measurement", "purpose": "Mã bệnh nhân BN-XXXX, mã bệnh án và chỉ số đo đạc" }
+    },
+    "shadows": [
+      { "name": "ocean-surface", "value": "0 1px 3px rgba(10, 37, 64, 0.05)", "purpose": "Đổ bóng nhẹ cho thẻ trạng thái tĩnh" },
+      { "name": "ocean-lift", "value": "0 8px 24px rgba(2, 132, 199, 0.12)", "purpose": "Độ nổi và viền cyan khi tương tác di chuột" }
+    ],
+    "motion": [
+      { "name": "ease-ocean", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Chuyển tiếp trạng thái nút và thẻ hover" }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1520px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Oceanic Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Nút tác vụ chính màu xanh nước biển cho thao tác lưu bệnh án, tạo bệnh nhân.",
+      "html": "<button class=\"ds-btn-ocean\">LƯU BỆNH ÁN</button>",
+      "css": ".ds-btn-ocean { background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%); color: #FFFFFF; padding: 8px 18px; font-weight: 650; border: none; border-radius: 6px; font-size: 14px; box-shadow: 0 3px 12px rgba(2, 132, 199, 0.35); cursor: pointer; transition: all 0.2s; } .ds-btn-ocean:hover { background: linear-gradient(135deg, #0369A1 0%, #075985 100%); box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45); transform: translateY(-1px); }"
+    },
+    {
+      "name": "Ocean Command Bar",
+      "kind": "card",
+      "refersTo": "card-kpi",
+      "description": "Thanh điều khiển trung tâm với gradient đại dương.",
+      "html": "<div class=\"ds-command-bar\"><div class=\"ds-command-title\">MediSpace Clinical Command Center</div></div>",
+      "css": ".ds-command-bar { background: linear-gradient(135deg, #071626 0%, #0A2540 50%, #075985 100%); padding: 24px 28px; border-radius: 16px; color: #FFFFFF; border: 1px solid rgba(56, 189, 248, 0.25); box-shadow: 0 10px 30px rgba(7, 22, 38, 0.25); } .ds-command-title { font-size: 24px; font-weight: 800; color: #FFFFFF; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Oceanic Clinical Command Workstation",
+    "overview": "MediSpace là hệ thống hồ sơ bệnh án điện tử với tông màu xanh nước biển (Ocean & Marine Blue) làm chủ đạo, biến Streamlit thành trạm điều hành lâm sàng chuyên nghiệp.",
+    "keyCharacteristics": [
+      "Tông màu xanh nước biển sâu thẳm kết hợp sương biển nhạt, dịu mắt và đẳng cấp",
+      "Thanh điều hướng Sidebar màu Deep Navy với nhận diện thương hiệu MediSpace",
+      "Ẩn thanh công cụ mặc định Streamlit, tái cấu trúc layout đạt chuẩn SaaS y tế"
+    ],
+    "rules": [
+      {
+        "name": "The Ocean Command Rule",
+        "body": "Màu xanh nước biển (#0284C7 & #38BDF8) dẫn dắt toàn bộ hành trình thao tác: nút bấm chính, thanh điều hướng và chỉ số đo lường.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Sử dụng màu xanh nước biển làm màu nhận diện chủ đạo.",
+      "Tích hợp render_sidebar_branding() tại Sidebar trên mọi trang.",
+      "Sử dụng type='primary' cho st.button."
+    ],
+    "donts": [
+      "Không để lộ giao diện Streamlit nguyên bản.",
+      "Không dùng kind='primary' trong st.button."
+    ]
+  }
+}

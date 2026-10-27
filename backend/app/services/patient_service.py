@@ -27,6 +27,21 @@ def _object_id(value: str):
 
 class PatientService:
     @staticmethod
+    def get_next_patient_code() -> str:
+        """Tự động sinh mã bệnh nhân tiếp theo (max existing + 1)."""
+        col = get_patients_collection()
+        total = col.count_documents({})
+        max_num = total
+        for doc in col.find({}, {"patient_code": 1}).sort("_id", -1).limit(100):
+            code = str(doc.get("patient_code", ""))
+            nums = re.findall(r"\d+", code)
+            if nums:
+                max_num = max(max_num, int(nums[-1]))
+        next_num = max_num + 1
+        code_str = f"{next_num:05d}" if next_num > 9999 else f"{next_num:04d}"
+        return f"BN-{code_str}"
+
+    @staticmethod
     def list_patients(skip: int = 0, limit: int = 100, search: str = None):
         patients_col = get_patients_collection()
         query = {}
