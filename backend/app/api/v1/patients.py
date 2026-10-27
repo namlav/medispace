@@ -44,6 +44,11 @@ def get_patients(
         "items": items
     }, custom_encoder={ObjectId: str})
 
+@router.get("/next-code", response_model=dict)
+def get_next_patient_code():
+    code = PatientService.get_next_patient_code()
+    return {"next_code": code}
+
 @router.get("/{patient_id}", response_model=PatientOut)
 def get_patient(patient_id: str):
     patient = PatientService.get_patient_by_id(patient_id)
