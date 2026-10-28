@@ -460,7 +460,12 @@ with tab_edit:
             with st.form("form_edit_patient_workstation"):
                 ec1, ec2 = st.columns(2, gap="large")
                 with ec1:
-                    e_code = st.text_input("Mã bệnh nhân *", value=editing_p.get("patient_code", ""))
+                    e_code = st.text_input(
+                        "Mã bệnh nhân (Cố định, không chỉnh sửa) *",
+                        value=editing_p.get("patient_code", ""),
+                        disabled=True,
+                        help="Mã bệnh nhân do hệ thống tự sinh và không được phép thay đổi.",
+                    )
                     raw_e_name = st.text_input("Họ và tên *", value=editing_p.get("full_name", ""))
                     try:
                         default_dob = pd.to_datetime(editing_p.get("dob")).date()
