@@ -8,8 +8,8 @@ REM=============================
 REM 1. Duong Dan cong cu
 REM==============================
 
-set "MONGODUMP=D:\MongoDBTools\bin\mongodump.exe"
-set "MONGORESTORE=D:\MongoDBTools\bin\mongorestore.exe"
+set "MONGODUMP=E:\mongodb-database-tools-windows-x86_64-100.18.0\bin\mongodump.exe"
+set "MONGORESTORE=E:\mongodb-database-tools-windows-x86_64-100.18.0\bin\mongorestore.exe"
 
 
 REM===========================
@@ -31,10 +31,10 @@ set "TEST_USER=user1"
 set "TEST_DB=medispace_restore_test"
 
 REM ======================================
-REM 4. THU MUC SAO LUU
+REM 4. THU MUC SAO LUUE:\nosql_subj\medispace
 REM ======================================
 
-set "BACKUP_ROOT=D:\medispace\backup"
+set "BACKUP_ROOT=E:\nosql_subj\medispace\backup"
 
 
 REM ======================================
