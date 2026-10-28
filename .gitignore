@@ -8,6 +8,7 @@ atlas-credentials.env
 venv/
 env/
 ENV/
+.venv/
 env.bak/
 venv.bak/
 
@@ -45,4 +46,7 @@ desktop.ini
 # Internal configs
 .codegraph/
 agent/
+.impeccable/
+DESIGN.MD
+PRODUCT.MD
 .vs/

@@ -1,0 +1,94 @@
+/* =========================================
+   MediSpace - Medical Form
+   ========================================= */
+
+/* Khu vực biểu mẫu */
+[data-testid="stForm"] {
+    background: #ffffff;
+    border: 1px solid var(--ms-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+/* Tab chức năng */
+.stTabs [data-baseweb="tab-list"] {
+    background: #edf5f3;
+    padding: 0.35rem;
+    border-radius: 10px;
+    gap: 0.3rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 7px;
+    padding: 0.55rem 1rem;
+    color: #536b75;
+}
+
+.stTabs [aria-selected="true"] {
+    background: #ffffff;
+    color: var(--ms-primary);
+    box-shadow: 0 1px 4px rgba(32, 59, 73, 0.08);
+}
+
+/* Tiêu đề trong trang */
+.stApp h1 {
+    color: var(--ms-heading);
+    font-weight: 750;
+}
+
+.stApp h2,
+.stApp h3 {
+    color: var(--ms-heading);
+    font-weight: 650;
+}
+
+/* Nhóm nhãn */
+[data-testid="stWidgetLabel"] p {
+    color: var(--ms-heading);
+    font-weight: 600;
+}
+
+/* Ô nhập liệu */
+[data-baseweb="input"] > div,
+[data-baseweb="select"] > div {
+    background: #ffffff;
+    border-color: #d7e2e7;
+    border-radius: 8px;
+}
+
+/* Vùng văn bản nhiều dòng */
+[data-baseweb="textarea"] {
+    background: #ffffff;
+    border-color: #d7e2e7;
+    border-radius: 8px;
+}
+
+/* Nút gửi biểu mẫu */
+[data-testid="stFormSubmitButton"] button {
+    min-height: 2.6rem;
+    border-radius: 8px;
+    font-weight: 650;
+}
+
+/* Khoảng cách phần nội dung tab */
+.stTabs [data-testid="stVerticalBlock"] {
+    gap: 1rem;
+}
+
+/* Bảng và dữ liệu */
+[data-testid="stDataFrame"],
+[data-testid="stTable"] {
+    border: 1px solid var(--ms-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Thông báo */
+[data-testid="stAlert"] {
+    border-radius: 9px;
+}
+
+/* Nút xóa vẫn phân biệt bằng trạng thái nguy hiểm */
+.stButton > button[kind="secondary"] {
+    border-radius: 8px;
+}

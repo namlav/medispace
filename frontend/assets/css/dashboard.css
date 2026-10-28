@@ -1,0 +1,138 @@
+/* =========================================
+   MediSpace - Dashboard
+   ========================================= */
+
+/* Header chính */
+.ms-hero {
+    background: linear-gradient(
+        115deg,
+        #ffffff 0%,
+        #f0f8f6 100%
+    );
+    border: 1px solid #dfece8;
+    border-left: 5px solid var(--ms-primary);
+    border-radius: 15px;
+    padding: 2rem 2.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.ms-eyebrow {
+    color: var(--ms-primary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+}
+
+.ms-hero h1 {
+    color: var(--ms-heading);
+    font-size: clamp(2rem, 3vw, 2.65rem);
+    font-weight: 750;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.ms-hero-description {
+    color: #526b76;
+    font-size: 1.05rem;
+    margin-top: 0.7rem;
+    margin-bottom: 0.6rem;
+}
+
+.ms-hero-meta {
+    color: var(--ms-muted);
+    font-size: 0.88rem;
+    margin-top: 0.8rem;
+}
+
+/* Tiêu đề từng khu vực */
+.ms-section-heading {
+    color: var(--ms-heading);
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 1.3rem 0 0.8rem;
+}
+
+.ms-section-description {
+    color: var(--ms-muted);
+    font-size: 0.92rem;
+    margin-top: -0.35rem;
+    margin-bottom: 1rem;
+}
+
+/* Thẻ phân công */
+.ms-member-index {
+    color: var(--ms-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.7rem;
+}
+
+.ms-member-title {
+    color: var(--ms-heading);
+    font-size: 1.02rem;
+    font-weight: 700;
+    line-height: 1.5;
+    min-height: 3rem;
+    margin-bottom: 0.3rem;
+}
+
+.ms-member-role {
+    color: var(--ms-primary);
+    font-size: 0.84rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+}
+
+.ms-member-divider {
+    border: 0;
+    border-top: 1px solid var(--ms-border);
+    margin: 0.8rem 0;
+}
+
+/* Nội dung nhiệm vụ trong thẻ */
+.ms-member-list {
+    color: var(--ms-text);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    padding-left: 1.1rem;
+    margin-bottom: 0;
+}
+
+.ms-member-list li {
+    margin-bottom: 0.35rem;
+}
+
+/* Thẻ hướng dẫn */
+.ms-guide-index {
+    color: var(--ms-primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 0.65rem;
+}
+
+.ms-guide-title {
+    color: var(--ms-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.ms-guide-description {
+    color: var(--ms-text);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+/* Thu gọn khoảng cách trên màn hình nhỏ */
+@media (max-width: 768px) {
+    .ms-hero {
+        padding: 1.4rem;
+    }
+
+    .ms-member-title {
+        min-height: 0;
+    }
+}
