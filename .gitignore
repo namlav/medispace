@@ -46,6 +46,7 @@ desktop.ini
 # Internal configs
 .codegraph/
 agent/
+.impeccable/
 DESIGN.MD
 PRODUCT.MD
 .vs/
