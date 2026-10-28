@@ -7,7 +7,7 @@ REM MEDISPACE - AUTOMATIC MONGODB BACKUP
 REM Chi Backup, KHONG Restore
 REM ============================================
 
-set "MONGODUMP=D:\MongoDBTools\bin\mongodump.exe"
+set "MONGODUMP=E:\mongodb-database-tools-windows-x86_64-100.18.0\bin\mongodump.exe"
 
 set "SOURCE_URI=mongodb+srv://cluster0.1rl5eeo.mongodb.net/"
 set "SOURCE_DB=medispace_db"
@@ -16,10 +16,10 @@ REM Tai khoan Atlas chi co quyen doc va Backup
 set "SOURCE_USER=sv3-fe"
 
 REM File chua mat khau duoc bao ve
-set "AUTH_CONFIG=D:\MediSpaceSecrets\mongodump.yaml"
+set "AUTH_CONFIG=E:\nosql_subj\medispacesecrets\mongodump.yaml"
 
-set "BACKUP_ROOT=D:\medispace\backup"
-set "LOG_ROOT=D:\medispace\backup_logs"
+set "BACKUP_ROOT=E:\nosql_subj\medispace\backup"
+set "LOG_ROOT=E:\nosql_subj\medispace\backup_logs"
 
 REM ============================================
 REM 1. KIEM TRA DIEU KIEN
